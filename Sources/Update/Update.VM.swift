@@ -45,7 +45,8 @@ private extension Update.VM {
         
         Task {
             do {
-                self.comics = try await parser.parse([Comic.Models.DisplayComic].self)
+                let data = try await parser.parse()
+                self.comics = try convertToComics(data: data)
                 
                 self.comics.forEach {
                     $0.isFavorite = favoriteWorker.isFavorite(comic: $0)
@@ -57,7 +58,7 @@ private extension Update.VM {
             catch {
                 comics = []
                 state = .hideLoading
-                state = .showError(message: "Timeout")
+                state = .showError(message: error.localizedDescription)
             }
         }
     }
@@ -89,7 +90,12 @@ private extension Update.VM {}
 
 // MARK: - Convert Something
 
-private extension Update.VM {}
+private extension Update.VM {
+    func convertToComics(data: Any) throws -> [Comic.Models.DisplayComic] {
+        let json = try JSONSerialization.data(withJSONObject: data, options: [])
+        return try JSONDecoder().decode([Comic.Models.DisplayComic].self, from: json)
+    }
+}
 
 // MARK: - Make Something
 

@@ -54,14 +54,15 @@ private extension Reader.VM {
         
         Task {
             do {
-                episode?.imgs = try await parser.parse([String].self)
+                let data = try await parser.parse()
+                episode?.imgs = try convertToImages(data: data)
                 state = .hideLoading
                 state = .loadedData
             }
             catch {
                 episode?.imgs = []
                 state = .hideLoading
-                state = .showError(message: "Timeout")
+                state = .showError(message: error.localizedDescription)
             }
         }
     }
@@ -73,7 +74,12 @@ private extension Reader.VM {}
 
 // MARK: - Convert Something
 
-private extension Reader.VM {}
+private extension Reader.VM {
+    func convertToImages(data: Any) throws -> [String] {
+        let json = try JSONSerialization.data(withJSONObject: data, options: [])
+        return try JSONDecoder().decode([String].self, from: json)
+    }
+}
 
 // MARK: - Make Something
 

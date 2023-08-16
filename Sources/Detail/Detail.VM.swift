@@ -56,7 +56,8 @@ private extension Detail.VM {
         
         Task {
             do {
-                comic.detail = try await parser.parse(Comic.Models.DisplayDetail.self)
+                let data = try await parser.parse()
+                comic.detail = try convertToDetail(data: data)
                 
                 comic.detail?.episodes.forEach {
                     $0.watched = historyWorker.isWatched(comic: comic, episode: $0)
@@ -98,7 +99,12 @@ private extension Detail.VM {}
 
 // MARK: - Convert Something
 
-private extension Detail.VM {}
+private extension Detail.VM {
+    func convertToDetail(data: Any) throws -> Comic.Models.DisplayDetail {
+        let json = try JSONSerialization.data(withJSONObject: data, options: [])
+        return try JSONDecoder().decode(Comic.Models.DisplayDetail.self, from: json)
+    }
+}
 
 // MARK: - Make Something
 
