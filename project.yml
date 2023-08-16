@@ -1,0 +1,50 @@
+name: Comic
+packages:
+  WebParser:
+    url: https://github.com/shinrenpan/WebParser
+    majorVersion: 1.0.0
+targets:
+  Comic:
+    platform: iOS
+    type: application
+    sources:
+      - Sources
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: true
+        CODE_SIGN_STYLE: Auto
+        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: 1
+        TARGETED_DEVICE_FAMILY: 1,2
+        PRODUCT_BUNDLE_IDENTIFIER: com.shinrenpan.Comic
+    dependencies:
+      - package: WebParser
+    info:
+      path: Sources/Info.plist
+      properties:
+        UIUserInterfaceStyle: "Light"
+        UIRequiresFullScreen: true
+        UILaunchStoryboardName: "LaunchScreen"
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: "Default Configuration"
+                UISceneDelegateClassName: "$(PRODUCT_MODULE_NAME).SceneDelegate"
+        UISupportedInterfaceOrientations: 
+          - "UIInterfaceOrientationPortrait"
+        UISupportedInterfaceOrientations~ipad:
+          - "UIInterfaceOrientationPortrait"
+    postCompileScripts:
+      - script: |
+                if [[ "$(uname -m)" == arm64 ]]; then
+                    export PATH="/opt/homebrew/bin:$PATH"
+                fi
+
+                if which swiftformat > /dev/null; then
+                   swiftformat .
+                else
+                    echo "warning: SwiftFormat not installed, download from https://github.com/nicklockwood/SwiftFormat"
+                fi
+        name: Swiftformat
+        basedOnDependencyAnalysis: false
