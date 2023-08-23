@@ -53,7 +53,7 @@ extension History.VC: UITableViewDelegate {
         router.toDetail(comic: comic)
     }
     
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let comic = vm.comics[indexPath.row]
         let actions = makeSwipeAction(comic: comic)
         return .init(actions: actions)
