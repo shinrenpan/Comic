@@ -75,6 +75,7 @@ private extension Detail.VO {
         result.translatesAutoresizingMaskIntoConstraints = false
         result.rowHeight = 60
         result.registerCell(UITableViewCell.self)
+        result.refreshControl = .init(frame: .zero)
         return result
     }
     

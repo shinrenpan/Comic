@@ -81,7 +81,7 @@ private extension Detail.VC {
     func setupSelf() {
         title = "詳細"
         router.vc = self
-        navigationItem.rightBarButtonItems = makeRightItems()
+        navigationItem.rightBarButtonItem = makeRightItem()
     }
     
     func setupBinding() {
@@ -108,6 +108,7 @@ private extension Detail.VC {
     func setupVO() {
         vo.list.delegate = self
         vo.list.dataSource = self
+        vo.list.refreshControl?.addTarget(self, action: #selector(reloadData), for: .valueChanged)
     }
 }
 
@@ -151,36 +152,28 @@ private extension Detail.VC {
     }
     
     func stateTapFavorite() {
-        navigationItem.rightBarButtonItems = makeRightItems()
+        navigationItem.rightBarButtonItem = makeRightItem()
     }
 }
 
 // MARK: - Make Something
 
 private extension Detail.VC {
-    func makeRightItems() -> [UIBarButtonItem] {
-        var result: [UIBarButtonItem] = [
-            .init(title: "更新", style: .done, target: self, action: #selector(tapReload))
-        ]
-        
-        let favorite: UIBarButtonItem
-        
+    func makeRightItem() -> UIBarButtonItem {
         switch vm.comic.isFavorite {
         case true:
-            favorite = .init(image: .init(systemName: "star.fill"), style: .plain, target: self, action: #selector(tapFavorite))
+            return .init(image: .init(systemName: "star.fill"), style: .plain, target: self, action: #selector(tapFavorite))
         case false:
-            favorite = .init(image: .init(systemName: "star"), style: .plain, target: self, action: #selector(tapFavorite))
+            return .init(image: .init(systemName: "star"), style: .plain, target: self, action: #selector(tapFavorite))
         }
-        
-        result.append(favorite)
-        return result
     }
 }
 
 // MARK: - Target / Action
 
 private extension Detail.VC {
-    @objc func tapReload() {
+    @objc func reloadData() {
+        vo.list.refreshControl?.endRefreshing()
         vm.doAction(.loadData)
     }
     
