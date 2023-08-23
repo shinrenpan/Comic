@@ -60,6 +60,14 @@ extension Favorite.VC: UITableViewDelegate {
     }
 }
 
+// MARK: - TabScrollableVC
+
+extension Favorite.VC: TabScrollableVC {
+    var scrollView: UIScrollView {
+        return vo.list
+    }
+}
+
 // MARK: - Setup Something
 
 private extension Favorite.VC {

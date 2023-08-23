@@ -49,8 +49,8 @@ private extension SceneDelegate {
 // MARK: - Make Something
 
 private extension SceneDelegate {
-    func makeRootVC() -> UITabBarController {
-        let result = UITabBarController()
+    func makeRootVC() -> TabBarController {
+        let result = TabBarController()
         result.viewControllers = [
             UINavigationController(rootViewController: makeUpdateVC()),
             UINavigationController(rootViewController: makeFavoriteVC()),

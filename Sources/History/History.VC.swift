@@ -60,6 +60,14 @@ extension History.VC: UITableViewDelegate {
     }
 }
 
+// MARK: - TabScrollableVC
+
+extension History.VC: TabScrollableVC {
+    var scrollView: UIScrollView {
+        return vo.list
+    }
+}
+
 // MARK: - Setup Something
 
 private extension History.VC {

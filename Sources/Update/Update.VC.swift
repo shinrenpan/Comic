@@ -66,6 +66,14 @@ extension Update.VC: UITableViewDelegate {
     }
 }
 
+// MARK: - TabScrollableVC
+
+extension Update.VC: TabScrollableVC {
+    var scrollView: UIScrollView {
+        return vo.list
+    }
+}
+
 // MARK: - Setup Something
 
 private extension Update.VC {
