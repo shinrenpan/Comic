@@ -54,6 +54,7 @@ private extension Update.VO {
         result.rowHeight = UITableView.automaticDimension
         result.estimatedRowHeight = 60
         result.separatorInset = .init(top: 0, left: 90, bottom: 0, right: 0)
+        result.refreshControl = .init(frame: .zero)
         return result
     }
     

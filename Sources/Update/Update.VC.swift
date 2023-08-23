@@ -59,7 +59,7 @@ extension Update.VC: UITableViewDelegate {
         router.toDetail(comic: comic)
     }
     
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let comic = vm.comics[indexPath.row]
         let actions = makeSwipeAction(comic: comic)
         return .init(actions: actions)
@@ -72,7 +72,6 @@ private extension Update.VC {
     func setupSelf() {
         title = "更新列表"
         router.vc = self
-        navigationItem.rightBarButtonItem = makeReloadItem()
     }
     
     func setupBinding() {
@@ -101,6 +100,7 @@ private extension Update.VC {
     func setupVO() {
         vo.list.delegate = self
         vo.list.dataSource = self
+        vo.list.refreshControl?.addTarget(self, action: #selector(reloadData), for: .valueChanged)
     }
 }
 
@@ -172,16 +172,13 @@ private extension Update.VC {
         
         return [action]
     }
-    
-    func makeReloadItem() -> UIBarButtonItem {
-        .init(title: "更新", style: .done, target: self, action: #selector(tapReload))
-    }
 }
 
 // MARK: - Target / Action
 
 private extension Update.VC {
-    @objc func tapReload() {
+    @objc func reloadData() {
+        vo.list.refreshControl?.endRefreshing()
         vm.doAction(.loadData)
     }
 }
