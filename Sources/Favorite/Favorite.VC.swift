@@ -58,6 +58,12 @@ extension Favorite.VC: UITableViewDelegate {
         let actions = makeSwipeAction(comic: comic)
         return .init(actions: actions)
     }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let comic = vm.comics[indexPath.row]
+        let actions = makeSwipeAction(comic: comic)
+        return .init(actions: actions)
+    }
 }
 
 // MARK: - TabScrollableVC
