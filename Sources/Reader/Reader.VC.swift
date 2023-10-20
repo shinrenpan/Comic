@@ -11,7 +11,8 @@ extension Reader {
         var vm: Reader.VM
         var router = Reader.Router()
         var binding = Set<AnyCancellable>()
-        var hideBar = true
+        var hideNavbar = true
+        var hideStatusBar = false
         
         init(comic: Comic.Models.DisplayComic) {
             self.vm = .init(comic: comic)
@@ -35,10 +36,13 @@ extension Reader {
         
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
-            updateUI(animated: animated)
             
             if vm.imgs.isEmpty {
                 vm.doAction(.loadData)
+            }
+            else {
+                hideNavbar = true
+                updateUI(delay: true)
             }
         }
         
@@ -47,7 +51,7 @@ extension Reader {
         }
         
         override var prefersStatusBarHidden: Bool {
-            hideBar
+            hideStatusBar
         }
     }
 }
@@ -72,8 +76,8 @@ extension Reader.VC: UICollectionViewDataSource {
 extension Reader.VC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: false)
-        hideBar.toggle()
-        updateUI()
+        hideNavbar.toggle()
+        updateUI(delay: false)
     }
 }
 
@@ -152,6 +156,11 @@ private extension Reader.VC {
     }
     
     func stateLoadedData() {
+        if !vm.imgs.isEmpty {
+            hideNavbar = true
+            updateUI(delay: true)
+        }
+        
         vo.reloadList(isEmpty: vm.imgs.isEmpty)
     }
 }
@@ -159,9 +168,14 @@ private extension Reader.VC {
 // MARK: - Update Something
 
 private extension Reader.VC {
-    func updateUI(animated: Bool = true) {
-        navigationController?.setNavigationBarHidden(hideBar, animated: animated)
-        setNeedsUpdateOfHomeIndicatorAutoHidden()
-        setNeedsStatusBarAppearanceUpdate()
+    func updateUI(delay: Bool) {
+        navigationController?.setNavigationBarHidden(hideNavbar, animated: true)
+        let time = delay ? 0.2 : 0.0
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + time) {
+            self.hideStatusBar = self.hideNavbar
+            self.setNeedsUpdateOfHomeIndicatorAutoHidden()
+            self.setNeedsStatusBarAppearanceUpdate()
+        }
     }
 }
