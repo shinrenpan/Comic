@@ -1,0 +1,42 @@
+{
+  "originHash" : "81a457020bc38b441d290724f6d919e61186f4ade8942626c826e2b5bb1cf537",
+  "pins" : [
+    {
+      "identity" : "anycodable",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Flight-School/AnyCodable",
+      "state" : {
+        "revision" : "862808b2070cd908cb04f9aafe7de83d35f81b05",
+        "version" : "0.6.7"
+      }
+    },
+    {
+      "identity" : "collectionconcurrencykit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/johnsundell/collectionconcurrencykit",
+      "state" : {
+        "revision" : "b4f23e24b5a1bff301efc5e70871083ca029ff95",
+        "version" : "0.2.0"
+      }
+    },
+    {
+      "identity" : "kingfisher",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/onevcat/Kingfisher",
+      "state" : {
+        "revision" : "5b92f029fab2cce44386d28588098b5be0824ef5",
+        "version" : "7.11.0"
+      }
+    },
+    {
+      "identity" : "webparser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/shinrenpan/WebParser/",
+      "state" : {
+        "revision" : "e99c137b7e25e77c85f89117fda01e9a983b8bd4",
+        "version" : "1.0.2"
+      }
+    }
+  ],
+  "version" : 3
+}
