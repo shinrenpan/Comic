@@ -30,12 +30,10 @@ extension DetailVO {
     func reloadUI(model: DetailModels.DisplayModel) {
         header.reloadUI(comic: model.comic)
         list.refreshControl?.endRefreshing()
-
-        list.performBatchUpdates {
-            list.reloadData()
-        } completion: { [weak self] _ in
-            guard let self else { return }
-            updateWatchedUI(model: model)
+        list.reloadData()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            self.updateWatchedUI(model: model)
         }
     }
 }
