@@ -30,7 +30,13 @@ extension DetailVO {
     func reloadUI(model: DetailModels.DisplayModel) {
         header.reloadUI(comic: model.comic)
         list.refreshControl?.endRefreshing()
-        list.reloadData()
+
+        list.performBatchUpdates {
+            list.reloadData()
+        } completion: { [weak self] _ in
+            guard let self else { return }
+            updateWatchedUI(model: model)
+        }
     }
 }
 
@@ -60,5 +66,20 @@ private extension DetailVO {
             list.trailingAnchor.constraint(equalTo: mainView.trailingAnchor),
             list.bottomAnchor.constraint(equalTo: mainView.bottomAnchor),
         ])
+    }
+
+    // MARK: - Update Something
+
+    func updateWatchedUI(model: DetailModels.DisplayModel) {
+        guard let watchedId = model.comic.watchedId else {
+            return
+        }
+
+        guard let row = model.episodes.firstIndex(where: { $0.id == watchedId }) else {
+            return
+        }
+
+        let indexPath = IndexPath(row: row, section: 0)
+        list.scrollToRow(at: indexPath, at: .top, animated: true)
     }
 }
