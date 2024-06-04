@@ -16,6 +16,7 @@ extension ReaderModels {
         case loadData
         case loadPrev
         case loadNext
+        case loadEpidoe(_ episode: Comic.Episode)
     }
 }
 

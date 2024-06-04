@@ -31,6 +31,8 @@ extension ReaderVM {
             actionLoadPrev()
         case .loadNext:
             actionLoadNext()
+        case let .loadEpidoe(episode):
+            actionLoadEpisode(episode)
         }
     }
 }
@@ -73,6 +75,13 @@ private extension ReaderVM {
 
         parser.parserConfiguration.request = makeNewParserRequest(nextEpisode)
         model.currentEpisode = nextEpisode
+
+        actionLoadData()
+    }
+
+    func actionLoadEpisode(_ episode: Comic.Episode) {
+        parser.parserConfiguration.request = makeNewParserRequest(episode)
+        model.currentEpisode = episode
 
         actionLoadData()
     }

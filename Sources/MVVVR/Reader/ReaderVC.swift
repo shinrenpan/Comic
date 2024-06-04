@@ -70,6 +70,7 @@ private extension ReaderVC {
 
     func setupSelf() {
         view.backgroundColor = vo.mainView.backgroundColor
+        navigationItem.rightBarButtonItem = makeEpisodePickerItem()
 
         setToolbarItems([
             vo.prevItem,
@@ -201,6 +202,15 @@ private extension ReaderVC {
         }
     }
 
+    func makeEpisodePickerItem() -> UIBarButtonItem {
+        let action = UIAction { [weak self] _ in
+            guard let self else { return }
+            router.showEpisodePicker(comic: vm.model.comic)
+        }
+
+        return .init(image: .init(systemName: "list.number"), primaryAction: action)
+    }
+
     // MARK: - Do Something
 
     func doLoadPrev() {
@@ -213,6 +223,16 @@ private extension ReaderVC {
         showLoadingUI()
         vo.reloadDisableAll()
         vm.doAction(.loadNext)
+    }
+
+    func doLoadEpisode(_ episode: Comic.Episode) {
+        if episode.id == vm.model.comic.watchedId {
+            return
+        }
+
+        showLoadingUI()
+        vo.reloadDisableAll()
+        vm.doAction(.loadEpidoe(episode))
     }
 }
 
@@ -288,5 +308,15 @@ extension ReaderVC: UICollectionViewDelegateFlowLayout {
          case false:
              return result
          }*/
+    }
+}
+
+// MARK: - EpisodeListDelegate
+
+extension ReaderVC: EpisodeListDelegate {
+    func list(_ list: EpisodeListVC, selected episode: Comic.Episode) {
+        list.dismiss(animated: true) {
+            self.doLoadEpisode(episode)
+        }
     }
 }
