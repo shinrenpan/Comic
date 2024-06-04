@@ -9,3 +9,18 @@ import UIKit
 final class ReaderRouter {
     weak var vc: ReaderVC?
 }
+
+// MARK: - Public
+
+extension ReaderRouter {
+    func showEpisodePicker(comic: Comic) {
+        let picker = EpisodeListVC(comic: comic)
+        picker.delegate = vc
+
+        if let sheet = picker.sheetPresentationController {
+            sheet.detents = [.medium()]
+        }
+
+        vc?.present(picker, animated: true)
+    }
+}
