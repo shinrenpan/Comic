@@ -14,6 +14,8 @@ final class ReaderVC: UIViewController {
     var binding: Set<AnyCancellable> = .init()
     var hideNavbar = false
     var hideStatusBar = false
+    var shouldLoadPrev = false
+    var shouldLoadNext = false
 
     var horizontalRead = true {
         didSet {
@@ -237,6 +239,38 @@ extension ReaderVC: UICollectionViewDelegate {
         collectionView.deselectItem(at: indexPath, animated: false)
         hideNavbar.toggle()
         updateUI(delay: false)
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+
+extension ReaderVC: UIScrollViewDelegate {
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        if shouldLoadPrev, vo.prevItem.isEnabled {
+            shouldLoadPrev = false
+            doLoadPrev()
+        }
+
+        if shouldLoadNext, vo.nextItem.isEnabled {
+            shouldLoadNext = false
+            doLoadNext()
+        }
+    }
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if !scrollView.isDragging { return }
+
+        let frame = scrollView.frame
+        let contentSize = scrollView.contentSize
+
+        switch horizontalRead {
+        case true:
+            shouldLoadPrev = scrollView.contentOffset.x < -vo.prevLabel.frame.width
+            shouldLoadNext = scrollView.contentOffset.x + frame.width > contentSize.width + vo.nextLabel.frame.width
+        case false:
+            shouldLoadPrev = scrollView.contentOffset.y < -vo.prevLabel.frame.height
+            shouldLoadNext = scrollView.contentOffset.y + frame.height > contentSize.height + vo.nextLabel.frame.height
+        }
     }
 }
 

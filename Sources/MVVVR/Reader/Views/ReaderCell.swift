@@ -21,6 +21,7 @@ final class ReaderCell: UICollectionViewCell {
 
     override init(frame: CGRect) {
         super.init(frame: .zero)
+        backgroundColor = .white
         addViews()
     }
 
