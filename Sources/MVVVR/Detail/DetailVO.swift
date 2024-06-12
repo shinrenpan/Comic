@@ -78,6 +78,6 @@ private extension DetailVO {
         }
 
         let indexPath = IndexPath(row: row, section: 0)
-        list.scrollToRow(at: indexPath, at: .top, animated: true)
+        list.scrollToRow(at: indexPath, at: .middle, animated: true)
     }
 }

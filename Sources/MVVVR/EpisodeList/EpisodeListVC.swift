@@ -88,7 +88,7 @@ private extension EpisodeListVC {
 
         dataSource.apply(snapshot) {
             if let row {
-                self.vo.list.scrollToRow(at: .init(row: row, section: 0), at: .top, animated: true)
+                self.vo.list.scrollToRow(at: .init(row: row, section: 0), at: .middle, animated: true)
             }
         }
     }
