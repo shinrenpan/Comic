@@ -31,7 +31,7 @@ extension DetailVO {
         header.reloadUI(comic: model.comic)
         list.refreshControl?.endRefreshing()
         list.reloadData()
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             self.updateWatchedUI(model: model)
         }
@@ -78,6 +78,6 @@ private extension DetailVO {
         }
 
         let indexPath = IndexPath(row: row, section: 0)
-        list.scrollToRow(at: indexPath, at: .top, animated: true)
+        list.scrollToRow(at: indexPath, at: .middle, animated: true)
     }
 }

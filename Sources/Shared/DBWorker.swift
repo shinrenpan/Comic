@@ -66,6 +66,21 @@ extension DBWorker {
         return (try? context?.fetch(descriptor)) ?? []
     }
 
+    func getSearchList(keywords: String) -> [Comic] {
+        if keywords.isEmpty { return [] }
+
+        let descriptor = FetchDescriptor<Comic>(
+            predicate: #Predicate {
+                $0.title.contains(keywords)
+            },
+            sortBy: [
+                SortDescriptor(\.lastUpdate, order: .reverse),
+            ]
+        )
+
+        return (try? context?.fetch(descriptor)) ?? []
+    }
+
     func updateEpisodes(comic: Comic, episodes: [Comic.Episode]) {
         comic.episodes?.forEach {
             context?.delete($0)
