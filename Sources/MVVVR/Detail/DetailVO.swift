@@ -31,7 +31,7 @@ extension DetailVO {
         header.reloadUI(comic: model.comic)
         list.refreshControl?.endRefreshing()
         list.reloadData()
-        
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             self.updateWatchedUI(model: model)
         }

@@ -55,17 +55,21 @@ extension AppDelegate {
         let updateVC = UpdateVC()
         updateVC.tabBarItem = .init(title: "更新列表", image: .init(systemName: "list.bullet"), tag: 0)
 
+        let searchList = SearchListVC()
+        searchList.tabBarItem = .init(title: "搜尋", image: .init(systemName: "magnifyingglass"), tag: 1)
+
         let favoriteVC = FavoriteVC()
-        favoriteVC.tabBarItem = .init(title: "收藏列表", image: .init(systemName: "star"), tag: 1)
+        favoriteVC.tabBarItem = .init(title: "收藏列表", image: .init(systemName: "star"), tag: 2)
 
         let historyVC = HistoryVC()
-        historyVC.tabBarItem = .init(title: "觀看紀錄", image: .init(systemName: "clock"), tag: 2)
+        historyVC.tabBarItem = .init(title: "觀看紀錄", image: .init(systemName: "clock"), tag: 3)
 
         let settingVC = SettingVC()
         settingVC.tabBarItem = .init(title: "設置", image: .init(systemName: "gear"), tag: 4)
 
         result.viewControllers = [
             UINavigationController(rootViewController: updateVC),
+            UINavigationController(rootViewController: searchList),
             UINavigationController(rootViewController: favoriteVC),
             UINavigationController(rootViewController: historyVC),
             UINavigationController(rootViewController: settingVC),
