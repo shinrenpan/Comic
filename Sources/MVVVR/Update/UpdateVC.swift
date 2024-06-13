@@ -119,7 +119,7 @@ private extension UpdateVC {
     func makeCell() -> UpdateModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
-                UpdateContentView(comic: item)
+                CellContentView(comic: item, inFavoriteList: false)
             }
         }
     }

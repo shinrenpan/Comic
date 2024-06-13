@@ -101,7 +101,7 @@ private extension FavoriteVC {
     func makeCell() -> FavoriteModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
-                FavoriteContentView(comic: item)
+                CellContentView(comic: item, inFavoriteList: true)
             }
         }
     }
