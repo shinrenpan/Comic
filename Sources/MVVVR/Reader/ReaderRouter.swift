@@ -14,13 +14,15 @@ final class ReaderRouter {
 
 extension ReaderRouter {
     func showEpisodePicker(comic: Comic) {
-        let picker = EpisodeListVC(comic: comic)
-        picker.delegate = vc
-
-        if let sheet = picker.sheetPresentationController {
+        let list = EpisodeListVC(comic: comic)
+        list.delegate = vc
+        
+        let to = UINavigationController(rootViewController: list)
+        if let sheet = to.sheetPresentationController {
             sheet.detents = [.medium()]
+            sheet.prefersGrabberVisible = true
         }
 
-        vc?.present(picker, animated: true)
+        vc?.present(to, animated: true)
     }
 }
