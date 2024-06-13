@@ -16,7 +16,7 @@ extension ReaderRouter {
     func showEpisodePicker(comic: Comic) {
         let list = EpisodeListVC(comic: comic)
         list.delegate = vc
-        
+
         let to = UINavigationController(rootViewController: list)
         if let sheet = to.sheetPresentationController {
             sheet.detents = [.medium()]

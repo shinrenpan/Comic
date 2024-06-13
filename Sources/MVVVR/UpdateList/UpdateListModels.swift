@@ -15,6 +15,7 @@ extension UpdateListModels {
     enum Action {
         case loadCache
         case loadData
+        case search(_ keywords: String)
         case updateFavorite(comic: Comic)
     }
 }

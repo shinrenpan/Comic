@@ -25,7 +25,7 @@ final class UpdateListVC: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        vm.doAction(.loadCache)
+        doSearchOrLoadCache()
     }
 }
 
@@ -37,6 +37,14 @@ private extension UpdateListVC {
     func setupSelf() {
         view.backgroundColor = vo.mainView.backgroundColor
         navigationItem.title = "更新列表"
+
+        let searchVC = UISearchController()
+        searchVC.searchResultsUpdater = self
+        searchVC.searchBar.placeholder = "漫畫名稱"
+        navigationItem.searchController = searchVC
+        navigationItem.preferredSearchBarPlacement = .stacked
+        navigationItem.hidesSearchBarWhenScrolling = false
+
         router.vc = self
     }
 
@@ -85,7 +93,7 @@ private extension UpdateListVC {
             vm.doAction(.loadData)
         }
         else {
-            if comics.isEmpty {
+            if comics.isEmpty, !isSearching() {
                 showErrorUI(reload: makeReloadAction())
             }
         }
@@ -152,9 +160,33 @@ private extension UpdateListVC {
 
     func makeReloadAction() -> UIAction {
         .init { [weak self] _ in
-            self?.showLoadingUI()
-            self?.vm.doAction(.loadData)
+            guard let self else { return }
+            if isSearching() {
+                return
+            }
+
+            showLoadingUI()
+            vm.doAction(.loadData)
         }
+    }
+
+    // MARK: - Do Something
+
+    func doSearchOrLoadCache() {
+        if let keywords = navigationItem.searchController?.searchBar.text?.gb,
+           !keywords.isEmpty
+        {
+            vm.doAction(.search(keywords))
+        }
+        else {
+            vm.doAction(.loadCache)
+        }
+    }
+
+    // MARK: - Condition
+
+    func isSearching() -> Bool {
+        navigationItem.searchController?.isActive ?? false
     }
 }
 
@@ -169,6 +201,14 @@ extension UpdateListVC: UICollectionViewDelegate {
         }
 
         router.toDetail(comic: comic)
+    }
+}
+
+// MARK: - UISearchResultsUpdating
+
+extension UpdateListVC: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        doSearchOrLoadCache()
     }
 }
 

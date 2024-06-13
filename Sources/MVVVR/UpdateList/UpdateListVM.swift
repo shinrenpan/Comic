@@ -28,6 +28,8 @@ extension UpdateListVM {
             actionLoadCache()
         case .loadData:
             actionLoadData()
+        case let .search(keywords):
+            actionSearch(keywords)
         case let .updateFavorite(comic):
             actionUpdateFavorite(comic)
         }
@@ -57,6 +59,13 @@ private extension UpdateListVM {
             catch {
                 actionLoadCache()
             }
+        }
+    }
+
+    func actionSearch(_ keywords: String) {
+        Task {
+            let comics = await DBWorker.shared.getSearchList(keywords: keywords)
+            state = .dataLoaded(comics: comics)
         }
     }
 

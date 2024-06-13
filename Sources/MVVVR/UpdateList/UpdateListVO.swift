@@ -13,6 +13,7 @@ final class UpdateListVO {
 
     let list = UICollectionView(frame: .zero, collectionViewLayout: .init())
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
+        .setup(\.keyboardDismissMode, value: .onDrag)
 
     init() {
         list.refreshControl = .init(frame: .zero)
