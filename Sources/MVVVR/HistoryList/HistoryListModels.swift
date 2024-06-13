@@ -1,25 +1,26 @@
 //
-//  SearchListModels.swift
+//  HistoryListModels.swift
 //
 //  Created by Shinren Pan on 2024/5/23.
 //
 
 import UIKit
 
-enum SearchListModels {}
+enum HistoryListModels {}
 
 // MARK: - Action
 
-extension SearchListModels {
+extension HistoryListModels {
     enum Action {
-        case search(keywords: String?)
+        case loadCache
         case updateFavorite(comic: Comic)
+        case removeHistory(comic: Comic)
     }
 }
 
 // MARK: - State
 
-extension SearchListModels {
+extension HistoryListModels {
     enum State {
         case none
         case dataLoaded(comics: [Comic])
@@ -29,7 +30,7 @@ extension SearchListModels {
 
 // MARK: - Other Model for DisplayModel
 
-extension SearchListModels {
+extension HistoryListModels {
     typealias DataSource = UICollectionViewDiffableDataSource<Section, Comic>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Comic>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
@@ -41,6 +42,6 @@ extension SearchListModels {
 
 // MARK: - Display Model for ViewModel
 
-extension SearchListModels {
+extension HistoryListModels {
     final class DisplayModel {}
 }

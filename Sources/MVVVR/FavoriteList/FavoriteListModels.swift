@@ -1,16 +1,16 @@
 //
-//  FavoriteModels.swift
+//  FavoriteListModels.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-enum FavoriteModels {}
+enum FavoriteListModels {}
 
 // MARK: - Action
 
-extension FavoriteModels {
+extension FavoriteListModels {
     enum Action {
         case loadCache
         case removeFavorite(comic: Comic)
@@ -19,7 +19,7 @@ extension FavoriteModels {
 
 // MARK: - State
 
-extension FavoriteModels {
+extension FavoriteListModels {
     enum State {
         case none
         case dataLoaded(comics: [Comic])
@@ -28,7 +28,7 @@ extension FavoriteModels {
 
 // MARK: - Other Model for DisplayModel
 
-extension FavoriteModels {
+extension FavoriteListModels {
     typealias DataSource = UICollectionViewDiffableDataSource<Section, Comic>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Comic>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
@@ -40,6 +40,6 @@ extension FavoriteModels {
 
 // MARK: - Display Model for ViewModel
 
-extension FavoriteModels {
+extension FavoriteListModels {
     final class DisplayModel {}
 }

@@ -1,5 +1,5 @@
 //
-//  UpdateVM.swift
+//  UpdateListVM.swift
 //
 //  Created by Shinren Pan on 2024/5/21.
 //
@@ -9,9 +9,9 @@ import Combine
 import UIKit
 import WebParser
 
-final class UpdateVM {
-    @Published var state = UpdateModels.State.none
-    let model = UpdateModels.DisplayModel()
+final class UpdateListVM {
+    @Published var state = UpdateListModels.State.none
+    let model = UpdateListModels.DisplayModel()
     let parser: Parser
 
     init() {
@@ -21,13 +21,15 @@ final class UpdateVM {
 
 // MARK: - Public
 
-extension UpdateVM {
-    func doAction(_ action: UpdateModels.Action) {
+extension UpdateListVM {
+    func doAction(_ action: UpdateListModels.Action) {
         switch action {
         case .loadCache:
             actionLoadCache()
         case .loadData:
             actionLoadData()
+        case let .search(keywords):
+            actionSearch(keywords)
         case let .updateFavorite(comic):
             actionUpdateFavorite(comic)
         }
@@ -36,7 +38,7 @@ extension UpdateVM {
 
 // MARK: - Private
 
-private extension UpdateVM {
+private extension UpdateListVM {
     // MARK: Do Action
 
     func actionLoadCache() {
@@ -57,6 +59,13 @@ private extension UpdateVM {
             catch {
                 actionLoadCache()
             }
+        }
+    }
+
+    func actionSearch(_ keywords: String) {
+        Task {
+            let comics = await DBWorker.shared.getSearchList(keywords: keywords)
+            state = .dataLoaded(comics: comics)
         }
     }
 

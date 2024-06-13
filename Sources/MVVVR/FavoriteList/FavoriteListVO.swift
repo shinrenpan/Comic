@@ -1,12 +1,12 @@
 //
-//  FavoriteVO.swift
+//  FavoriteListVO.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-final class FavoriteVO {
+final class FavoriteListVO {
     let mainView = UIView(frame: .zero)
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
 
@@ -20,9 +20,9 @@ final class FavoriteVO {
 
 // MARK: - Public
 
-extension FavoriteVO {
-    func reloadUI(comics: [Comic], dataSource: FavoriteModels.DataSource) {
-        var snapshot = FavoriteModels.Snapshot()
+extension FavoriteListVO {
+    func reloadUI(comics: [Comic], dataSource: FavoriteListModels.DataSource) {
+        var snapshot = FavoriteListModels.Snapshot()
         snapshot.appendSections([.main])
         snapshot.appendItems(comics, toSection: .main)
         dataSource.apply(snapshot)
@@ -31,7 +31,7 @@ extension FavoriteVO {
 
 // MARK: - Private
 
-private extension FavoriteVO {
+private extension FavoriteListVO {
     // MARK: Add Something
 
     func addViews() {

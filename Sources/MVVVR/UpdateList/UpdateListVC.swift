@@ -1,20 +1,20 @@
 //
-//  SearchListVC.swift
+//  UpdateListVC.swift
 //
-//  Created by Shinren Pan on 2024/5/23.
+//  Created by Shinren Pan on 2024/5/21.
 //
 
 import Combine
-import SwiftData
 import SwiftUI
 import UIKit
 
-final class SearchListVC: UIViewController {
-    let vo = SearchListVO()
-    let vm = SearchListVM()
-    let router = SearchListRouter()
+final class UpdateListVC: UIViewController {
+    let vo = UpdateListVO()
+    let vm = UpdateListVM()
+    let router = UpdateListRouter()
     var binding: Set<AnyCancellable> = .init()
     lazy var dataSource = makeDataSource()
+    var firstInit = true
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,21 +22,29 @@ final class SearchListVC: UIViewController {
         setupBinding()
         setupVO()
     }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        doSearchOrLoadCache()
+    }
 }
 
 // MARK: - Private
 
-private extension SearchListVC {
+private extension UpdateListVC {
     // MARK: Setup Something
 
     func setupSelf() {
         view.backgroundColor = vo.mainView.backgroundColor
-        navigationItem.title = "搜尋"
+        navigationItem.title = "更新列表"
+
         let searchVC = UISearchController()
-        searchVC.searchBar.placeholder = "漫畫名稱"
         searchVC.searchResultsUpdater = self
+        searchVC.searchBar.placeholder = "漫畫名稱"
         navigationItem.searchController = searchVC
         navigationItem.preferredSearchBarPlacement = .stacked
+        navigationItem.hidesSearchBarWhenScrolling = false
+
         router.vc = self
     }
 
@@ -47,8 +55,8 @@ private extension SearchListVC {
             switch state {
             case .none:
                 self?.stateNone()
-            case let .dataLoaded(comics):
-                self?.stateDataLoaded(comics: comics)
+            case let .dataLoaded(comic):
+                self?.stateDataLoaded(comics: comic)
             case let .dataUpdated(comic):
                 self?.stateDataUpdated(comic: comic)
             }
@@ -65,6 +73,7 @@ private extension SearchListVC {
             vo.mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
 
+        vo.list.refreshControl?.addAction(makeReloadAction(), for: .valueChanged)
         vo.list.setCollectionViewLayout(makeListLayout(), animated: false)
         vo.list.dataSource = dataSource
         vo.list.delegate = self
@@ -76,6 +85,18 @@ private extension SearchListVC {
 
     func stateDataLoaded(comics: [Comic]) {
         vo.reloadUI(comics: comics, dataSource: dataSource)
+        showEmptyUI(isEmpty: comics.isEmpty)
+
+        if firstInit {
+            firstInit = false
+            showLoadingUI()
+            vm.doAction(.loadData)
+        }
+        else {
+            if comics.isEmpty, !isSearching() {
+                showErrorUI(reload: makeReloadAction())
+            }
+        }
     }
 
     func stateDataUpdated(comic: Comic) {
@@ -90,30 +111,28 @@ private extension SearchListVC {
 
         config.leadingSwipeActionsConfigurationProvider = { [weak self] indexPath in
             guard let self else { return nil }
-            guard let comic = dataSource.itemIdentifier(for: indexPath) else { return nil }
 
-            return makeFavoriteActionForComic(comic)
+            return makeSwipeActionsForIndexPath(indexPath)
         }
 
         config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
             guard let self else { return nil }
-            guard let comic = dataSource.itemIdentifier(for: indexPath) else { return nil }
 
-            return makeFavoriteActionForComic(comic)
+            return makeSwipeActionsForIndexPath(indexPath)
         }
 
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
-    func makeCell() -> SearchListModels.CellRegistration {
+    func makeCell() -> UpdateListModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
-                SearchListContentView(comic: item)
+                CellContentView(comic: item, cellType: .update)
             }
         }
     }
 
-    func makeDataSource() -> SearchListModels.DataSource {
+    func makeDataSource() -> UpdateListModels.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
@@ -121,12 +140,17 @@ private extension SearchListVC {
         }
     }
 
-    func makeFavoriteActionForComic(_ comic: Comic) -> UISwipeActionsConfiguration {
+    func makeSwipeActionsForIndexPath(_ indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard let comic = dataSource.itemIdentifier(for: indexPath) else {
+            return nil
+        }
+
         let favorited = comic.favorited
         let title = favorited ? "取消收藏" : "加入收藏"
 
         let action = UIContextualAction(style: .normal, title: title) { [weak self] _, _, _ in
-            self?.vm.doAction(.updateFavorite(comic: comic))
+            guard let self else { return }
+            vm.doAction(.updateFavorite(comic: comic))
         }
 
         action.backgroundColor = favorited ? .orange : .blue
@@ -134,22 +158,41 @@ private extension SearchListVC {
         return .init(actions: [action])
     }
 
-    func makeKeywords(origin: String?) -> String? {
-        guard let origin else {
-            return nil
-        }
+    func makeReloadAction() -> UIAction {
+        .init { [weak self] _ in
+            guard let self else { return }
+            if isSearching() {
+                return
+            }
 
-        if vo.zhHansSwitcher.isOn {
-            return origin.gb
+            showLoadingUI()
+            vm.doAction(.loadData)
         }
+    }
 
-        return origin.big5
+    // MARK: - Do Something
+
+    func doSearchOrLoadCache() {
+        if let keywords = navigationItem.searchController?.searchBar.text?.gb,
+           !keywords.isEmpty
+        {
+            vm.doAction(.search(keywords))
+        }
+        else {
+            vm.doAction(.loadCache)
+        }
+    }
+
+    // MARK: - Condition
+
+    func isSearching() -> Bool {
+        navigationItem.searchController?.isActive ?? false
     }
 }
 
 // MARK: - UICollectionViewDelegate
 
-extension SearchListVC: UICollectionViewDelegate {
+extension UpdateListVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -163,16 +206,15 @@ extension SearchListVC: UICollectionViewDelegate {
 
 // MARK: - UISearchResultsUpdating
 
-extension SearchListVC: UISearchResultsUpdating {
+extension UpdateListVC: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        let keywords = makeKeywords(origin: searchController.searchBar.text)
-        vm.doAction(.search(keywords: keywords))
+        doSearchOrLoadCache()
     }
 }
 
 // MARK: - ScrollToTopable
 
-extension SearchListVC: ScrollToTopable {
+extension UpdateListVC: ScrollToTopable {
     func scrollToTop() {
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)

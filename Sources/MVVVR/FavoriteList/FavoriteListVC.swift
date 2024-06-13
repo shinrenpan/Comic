@@ -1,5 +1,5 @@
 //
-//  FavoriteVC.swift
+//  FavoriteListVC.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
@@ -9,10 +9,10 @@ import SwiftData
 import SwiftUI
 import UIKit
 
-final class FavoriteVC: UIViewController {
-    let vo = FavoriteVO()
-    let vm = FavoriteVM()
-    let router = FavoriteRouter()
+final class FavoriteListVC: UIViewController {
+    let vo = FavoriteListVO()
+    let vm = FavoriteListVM()
+    let router = FavoriteListRouter()
     var binding: Set<AnyCancellable> = .init()
     lazy var dataSource = makeDataSource()
 
@@ -31,7 +31,7 @@ final class FavoriteVC: UIViewController {
 
 // MARK: - Private
 
-private extension FavoriteVC {
+private extension FavoriteListVC {
     // MARK: Setup Something
 
     func setupSelf() {
@@ -98,15 +98,15 @@ private extension FavoriteVC {
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
-    func makeCell() -> FavoriteModels.CellRegistration {
+    func makeCell() -> FavoriteListModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
-                FavoriteContentView(comic: item)
+                CellContentView(comic: item, cellType: .favorite)
             }
         }
     }
 
-    func makeDataSource() -> FavoriteModels.DataSource {
+    func makeDataSource() -> FavoriteListModels.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
@@ -131,7 +131,7 @@ private extension FavoriteVC {
 
 // MARK: - UICollectionViewDelegate
 
-extension FavoriteVC: UICollectionViewDelegate {
+extension FavoriteListVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -145,7 +145,7 @@ extension FavoriteVC: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension FavoriteVC: ScrollToTopable {
+extension FavoriteListVC: ScrollToTopable {
     func scrollToTop() {
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)

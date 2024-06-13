@@ -30,10 +30,6 @@ final class EpisodeListVC: UIViewController {
         setupSelf()
         setupBinding()
         setupVO()
-    }
-
-    override func viewIsAppearing(_ animated: Bool) {
-        super.viewIsAppearing(animated)
         vm.doAction(.loadData)
     }
 }
@@ -45,6 +41,7 @@ private extension EpisodeListVC {
 
     func setupSelf() {
         view.backgroundColor = vo.mainView.backgroundColor
+        navigationItem.title = "集數"
         router.vc = self
     }
 

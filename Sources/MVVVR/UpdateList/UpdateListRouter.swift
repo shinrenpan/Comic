@@ -1,18 +1,18 @@
 //
-//  HistoryRouter.swift
+//  UpdateListRouter.swift
 //
-//  Created by Shinren Pan on 2024/5/23.
+//  Created by Shinren Pan on 2024/5/21.
 //
 
 import UIKit
 
-final class HistoryRouter {
-    weak var vc: HistoryVC?
+final class UpdateListRouter {
+    weak var vc: UpdateListVC?
 }
 
 // MARK: - Public
 
-extension HistoryRouter {
+extension UpdateListRouter {
     func toDetail(comic: Comic) {
         let to = DetailVC(comic: comic)
         to.hidesBottomBarWhenPushed = true

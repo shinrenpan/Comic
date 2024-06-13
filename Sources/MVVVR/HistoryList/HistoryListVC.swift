@@ -1,5 +1,5 @@
 //
-//  HistoryVC.swift
+//  HistoryListVC.swift
 //
 //  Created by Shinren Pan on 2024/5/23.
 //
@@ -9,10 +9,10 @@ import SwiftData
 import SwiftUI
 import UIKit
 
-final class HistoryVC: UIViewController {
-    let vo = HistoryVO()
-    let vm = HistoryVM()
-    let router = HistoryRouter()
+final class HistoryListVC: UIViewController {
+    let vo = HistoryListVO()
+    let vm = HistoryListVM()
+    let router = HistoryListRouter()
     var binding: Set<AnyCancellable> = .init()
     lazy var dataSource = makeDataSource()
 
@@ -31,7 +31,7 @@ final class HistoryVC: UIViewController {
 
 // MARK: - Private
 
-private extension HistoryVC {
+private extension HistoryListVC {
     // MARK: Setup Something
 
     func setupSelf() {
@@ -104,15 +104,15 @@ private extension HistoryVC {
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
-    func makeCell() -> HistoryModels.CellRegistration {
+    func makeCell() -> HistoryListModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
-                HistoryContentView(comic: item)
+                CellContentView(comic: item, cellType: .history)
             }
         }
     }
 
-    func makeDataSource() -> HistoryModels.DataSource {
+    func makeDataSource() -> HistoryListModels.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
@@ -161,7 +161,7 @@ private extension HistoryVC {
 
 // MARK: - UICollectionViewDelegate
 
-extension HistoryVC: UICollectionViewDelegate {
+extension HistoryListVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -175,7 +175,7 @@ extension HistoryVC: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension HistoryVC: ScrollToTopable {
+extension HistoryListVC: ScrollToTopable {
     func scrollToTop() {
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)

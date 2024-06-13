@@ -1,48 +1,50 @@
 //
-//  UpdateVO.swift
+//  HistoryListVO.swift
 //
-//  Created by Shinren Pan on 2024/5/21.
+//  Created by Shinren Pan on 2024/5/23.
 //
 
 import UIKit
 
-final class UpdateVO {
+final class HistoryListVO {
     let mainView = UIView(frame: .zero)
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
-        .setup(\.backgroundColor, value: .white)
 
     let list = UICollectionView(frame: .zero, collectionViewLayout: .init())
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
 
     init() {
-        list.refreshControl = .init(frame: .zero)
         addViews()
     }
 }
 
 // MARK: - Public
 
-extension UpdateVO {
-    func reloadUI(comics: [Comic], dataSource: UpdateModels.DataSource) {
-        list.refreshControl?.endRefreshing()
-
-        var snapshot = UpdateModels.Snapshot()
+extension HistoryListVO {
+    func reloadUI(comics: [Comic], dataSource: HistoryListModels.DataSource) {
+        var snapshot = HistoryListModels.Snapshot()
         snapshot.appendSections([.main])
         snapshot.appendItems(comics, toSection: .main)
         dataSource.apply(snapshot)
     }
 
-    func reloadItem(_ item: Comic, dataSource: UpdateModels.DataSource) {
+    func reloadItem(_ item: Comic, dataSource: HistoryListModels.DataSource) {
         var snapshot = dataSource.snapshot()
         snapshot.reloadItems([item])
+        dataSource.apply(snapshot)
+    }
+
+    func deleteItem(_ item: Comic, dataSource: HistoryListModels.DataSource) {
+        var snapshot = dataSource.snapshot()
+        snapshot.deleteItems([item])
         dataSource.apply(snapshot)
     }
 }
 
 // MARK: - Private
 
-private extension UpdateVO {
-    // MARK: - Add Something
+private extension HistoryListVO {
+    // MARK: Add Something
 
     func addViews() {
         mainView.addSubview(list)

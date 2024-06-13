@@ -1,35 +1,35 @@
 //
-//  SearchListContentView.swift
+//  CellContentView.swift
 //
-//  Created by Shinren Pan on 2024/5/24.
+//  Created by Shinren Pan on 2024/6/13.
 //
 
 import Kingfisher
 import SwiftUI
+import UIKit
 
-struct SearchListContentView: View {
+struct CellContentView: View {
+    enum CellType {
+        case update
+        case favorite
+        case history
+    }
+
     @Bindable var comic: Comic
     let dateFormatter = DateFormatter()
     let converURL: URL?
-    let watchDate: String
     let lastUpdate: String
+    let cellType: CellType
 
-    init(comic: Comic) {
+    init(comic: Comic, cellType: CellType) {
         self.comic = comic
+        self.cellType = cellType
 
         if let uri = comic.detail?.cover {
             self.converURL = URL(string: "https:\(uri)")
         }
         else {
             self.converURL = nil
-        }
-
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
-        if let watchDate = comic.watchDate {
-            self.watchDate = "觀看時間: " + dateFormatter.string(from: watchDate)
-        }
-        else {
-            self.watchDate = "觀看時間: 未觀看"
         }
 
         dateFormatter.dateFormat = "yyyy-MM-dd"
@@ -45,7 +45,8 @@ struct SearchListContentView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .top) {
-                    if comic.favorited {
+                    // 在非 Favorite Cell 下, 才會出現
+                    if comic.favorited, cellType != .favorite {
                         Image(systemName: "star.fill")
                             .font(.headline)
                             .foregroundColor(.blue)
@@ -60,14 +61,18 @@ struct SearchListContentView: View {
 
                 Spacer(minLength: 8)
 
-                Text(watchDate)
-                    .font(.footnote)
+                // 在非 Update Cell 下, 才會出現
+                if cellType != .update {
+                    Text(makeWatchDate())
+                        .font(.footnote)
+                }
 
                 HStack {
                     Text(lastUpdate)
                         .font(.footnote)
 
-                    if comic.hasNew {
+                    // 在非 Update Cell 下, 才會出現
+                    if comic.hasNew, cellType != .update {
                         Text("New")
                             .font(.footnote)
                             .foregroundStyle(.red)
@@ -78,5 +83,19 @@ struct SearchListContentView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - Private
+
+private extension CellContentView {
+    func makeWatchDate() -> String {
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        if let watchDate = comic.watchDate {
+            return "觀看時間: " + dateFormatter.string(from: watchDate)
+        }
+        else {
+            return "觀看時間: 未觀看"
+        }
     }
 }

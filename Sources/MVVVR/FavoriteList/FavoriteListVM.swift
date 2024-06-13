@@ -1,5 +1,5 @@
 //
-//  FavoriteVM.swift
+//  FavoriteListVM.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
@@ -7,15 +7,15 @@
 import Combine
 import UIKit
 
-final class FavoriteVM {
-    @Published var state = FavoriteModels.State.none
-    let model = FavoriteModels.DisplayModel()
+final class FavoriteListVM {
+    @Published var state = FavoriteListModels.State.none
+    let model = FavoriteListModels.DisplayModel()
 }
 
 // MARK: - Public
 
-extension FavoriteVM {
-    func doAction(_ action: FavoriteModels.Action) {
+extension FavoriteListVM {
+    func doAction(_ action: FavoriteListModels.Action) {
         switch action {
         case .loadCache:
             actionLoadCache()
@@ -27,7 +27,7 @@ extension FavoriteVM {
 
 // MARK: - Private
 
-private extension FavoriteVM {
+private extension FavoriteListVM {
     // MARK: Do Action
 
     func actionLoadCache() {
