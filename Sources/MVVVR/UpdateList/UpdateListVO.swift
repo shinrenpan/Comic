@@ -1,12 +1,12 @@
 //
-//  UpdateVO.swift
+//  UpdateListVO.swift
 //
 //  Created by Shinren Pan on 2024/5/21.
 //
 
 import UIKit
 
-final class UpdateVO {
+final class UpdateListVO {
     let mainView = UIView(frame: .zero)
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         .setup(\.backgroundColor, value: .white)
@@ -22,17 +22,17 @@ final class UpdateVO {
 
 // MARK: - Public
 
-extension UpdateVO {
-    func reloadUI(comics: [Comic], dataSource: UpdateModels.DataSource) {
+extension UpdateListVO {
+    func reloadUI(comics: [Comic], dataSource: UpdateListModels.DataSource) {
         list.refreshControl?.endRefreshing()
 
-        var snapshot = UpdateModels.Snapshot()
+        var snapshot = UpdateListModels.Snapshot()
         snapshot.appendSections([.main])
         snapshot.appendItems(comics, toSection: .main)
         dataSource.apply(snapshot)
     }
 
-    func reloadItem(_ item: Comic, dataSource: UpdateModels.DataSource) {
+    func reloadItem(_ item: Comic, dataSource: UpdateListModels.DataSource) {
         var snapshot = dataSource.snapshot()
         snapshot.reloadItems([item])
         dataSource.apply(snapshot)
@@ -41,7 +41,7 @@ extension UpdateVO {
 
 // MARK: - Private
 
-private extension UpdateVO {
+private extension UpdateListVO {
     // MARK: - Add Something
 
     func addViews() {

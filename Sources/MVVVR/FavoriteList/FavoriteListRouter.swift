@@ -1,18 +1,18 @@
 //
-//  FavoriteRouter.swift
+//  FavoriteListRouter.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-final class FavoriteRouter {
-    weak var vc: FavoriteVC?
+final class FavoriteListRouter {
+    weak var vc: FavoriteListVC?
 }
 
 // MARK: - Public
 
-extension FavoriteRouter {
+extension FavoriteListRouter {
     func toDetail(comic: Comic) {
         let to = DetailVC(comic: comic)
         to.hidesBottomBarWhenPushed = true

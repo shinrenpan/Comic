@@ -1,5 +1,5 @@
 //
-//  HistoryVM.swift
+//  HistoryListVM.swift
 //
 //  Created by Shinren Pan on 2024/5/23.
 //
@@ -7,15 +7,15 @@
 import Combine
 import UIKit
 
-final class HistoryVM {
-    @Published var state = HistoryModels.State.none
-    let model = HistoryModels.DisplayModel()
+final class HistoryListVM {
+    @Published var state = HistoryListModels.State.none
+    let model = HistoryListModels.DisplayModel()
 }
 
 // MARK: - Public
 
-extension HistoryVM {
-    func doAction(_ action: HistoryModels.Action) {
+extension HistoryListVM {
+    func doAction(_ action: HistoryListModels.Action) {
         switch action {
         case .loadCache:
             actionLoadCache()
@@ -29,7 +29,7 @@ extension HistoryVM {
 
 // MARK: - Private
 
-private extension HistoryVM {
+private extension HistoryListVM {
     // MARK: Do Action
 
     func actionLoadCache() {

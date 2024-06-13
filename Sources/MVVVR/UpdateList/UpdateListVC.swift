@@ -1,5 +1,5 @@
 //
-//  UpdateVC.swift
+//  UpdateListVC.swift
 //
 //  Created by Shinren Pan on 2024/5/21.
 //
@@ -8,10 +8,10 @@ import Combine
 import SwiftUI
 import UIKit
 
-final class UpdateVC: UIViewController {
-    let vo = UpdateVO()
-    let vm = UpdateVM()
-    let router = UpdateRouter()
+final class UpdateListVC: UIViewController {
+    let vo = UpdateListVO()
+    let vm = UpdateListVM()
+    let router = UpdateListRouter()
     var binding: Set<AnyCancellable> = .init()
     lazy var dataSource = makeDataSource()
     var firstInit = true
@@ -31,7 +31,7 @@ final class UpdateVC: UIViewController {
 
 // MARK: - Private
 
-private extension UpdateVC {
+private extension UpdateListVC {
     // MARK: Setup Something
 
     func setupSelf() {
@@ -116,7 +116,7 @@ private extension UpdateVC {
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
-    func makeCell() -> UpdateModels.CellRegistration {
+    func makeCell() -> UpdateListModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
                 CellContentView(comic: item, inFavoriteList: false)
@@ -124,7 +124,7 @@ private extension UpdateVC {
         }
     }
 
-    func makeDataSource() -> UpdateModels.DataSource {
+    func makeDataSource() -> UpdateListModels.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
@@ -160,7 +160,7 @@ private extension UpdateVC {
 
 // MARK: - UICollectionViewDelegate
 
-extension UpdateVC: UICollectionViewDelegate {
+extension UpdateListVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -174,7 +174,7 @@ extension UpdateVC: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension UpdateVC: ScrollToTopable {
+extension UpdateListVC: ScrollToTopable {
     func scrollToTop() {
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)

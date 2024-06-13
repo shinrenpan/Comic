@@ -1,5 +1,5 @@
 //
-//  UpdateModels.swift
+//  UpdateListModels.swift
 //
 //  Created by Shinren Pan on 2024/5/21.
 //
@@ -7,11 +7,11 @@
 import UIKit
 import WebParser
 
-enum UpdateModels {}
+enum UpdateListModels {}
 
 // MARK: - Action
 
-extension UpdateModels {
+extension UpdateListModels {
     enum Action {
         case loadCache
         case loadData
@@ -21,7 +21,7 @@ extension UpdateModels {
 
 // MARK: - State
 
-extension UpdateModels {
+extension UpdateListModels {
     enum State {
         case none
         case dataLoaded(comics: [Comic])
@@ -31,7 +31,7 @@ extension UpdateModels {
 
 // MARK: - Other Model for DisplayModel
 
-extension UpdateModels {
+extension UpdateListModels {
     typealias DataSource = UICollectionViewDiffableDataSource<Section, Comic>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Comic>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
@@ -43,7 +43,7 @@ extension UpdateModels {
 
 // MARK: - Display Model for ViewModel
 
-extension UpdateModels {
+extension UpdateListModels {
     final class DisplayModel {
         let parserSetting: ParserConfiguration
 

@@ -1,12 +1,12 @@
 //
-//  HistoryVO.swift
+//  FavoriteListVO.swift
 //
-//  Created by Shinren Pan on 2024/5/23.
+//  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-final class HistoryVO {
+final class FavoriteListVO {
     let mainView = UIView(frame: .zero)
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
 
@@ -20,30 +20,18 @@ final class HistoryVO {
 
 // MARK: - Public
 
-extension HistoryVO {
-    func reloadUI(comics: [Comic], dataSource: HistoryModels.DataSource) {
-        var snapshot = HistoryModels.Snapshot()
+extension FavoriteListVO {
+    func reloadUI(comics: [Comic], dataSource: FavoriteListModels.DataSource) {
+        var snapshot = FavoriteListModels.Snapshot()
         snapshot.appendSections([.main])
         snapshot.appendItems(comics, toSection: .main)
-        dataSource.apply(snapshot)
-    }
-
-    func reloadItem(_ item: Comic, dataSource: HistoryModels.DataSource) {
-        var snapshot = dataSource.snapshot()
-        snapshot.reloadItems([item])
-        dataSource.apply(snapshot)
-    }
-
-    func deleteItem(_ item: Comic, dataSource: HistoryModels.DataSource) {
-        var snapshot = dataSource.snapshot()
-        snapshot.deleteItems([item])
         dataSource.apply(snapshot)
     }
 }
 
 // MARK: - Private
 
-private extension HistoryVO {
+private extension FavoriteListVO {
     // MARK: Add Something
 
     func addViews() {

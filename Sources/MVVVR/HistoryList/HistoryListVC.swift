@@ -1,7 +1,7 @@
 //
-//  FavoriteVC.swift
+//  HistoryListVC.swift
 //
-//  Created by Shinren Pan on 2024/5/22.
+//  Created by Shinren Pan on 2024/5/23.
 //
 
 import Combine
@@ -9,10 +9,10 @@ import SwiftData
 import SwiftUI
 import UIKit
 
-final class FavoriteVC: UIViewController {
-    let vo = FavoriteVO()
-    let vm = FavoriteVM()
-    let router = FavoriteRouter()
+final class HistoryListVC: UIViewController {
+    let vo = HistoryListVO()
+    let vm = HistoryListVM()
+    let router = HistoryListRouter()
     var binding: Set<AnyCancellable> = .init()
     lazy var dataSource = makeDataSource()
 
@@ -31,12 +31,12 @@ final class FavoriteVC: UIViewController {
 
 // MARK: - Private
 
-private extension FavoriteVC {
+private extension HistoryListVC {
     // MARK: Setup Something
 
     func setupSelf() {
         view.backgroundColor = vo.mainView.backgroundColor
-        navigationItem.title = "收藏列表"
+        navigationItem.title = "觀看紀錄"
         router.vc = self
     }
 
@@ -49,6 +49,8 @@ private extension FavoriteVC {
                 self?.stateNone()
             case let .dataLoaded(comics):
                 self?.stateDataLoaded(comics: comics)
+            case let .dataUpdated(comic):
+                self?.stateDataUpdated(comic: comic)
             }
         }.store(in: &binding)
     }
@@ -77,6 +79,10 @@ private extension FavoriteVC {
         showEmptyUI(isEmpty: comics.isEmpty)
     }
 
+    func stateDataUpdated(comic: Comic) {
+        vo.reloadItem(comic, dataSource: dataSource)
+    }
+
     // MARK: - Make Something
 
     func makeListLayout() -> UICollectionViewCompositionalLayout {
@@ -98,15 +104,15 @@ private extension FavoriteVC {
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
-    func makeCell() -> FavoriteModels.CellRegistration {
+    func makeCell() -> HistoryListModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
-                CellContentView(comic: item, inFavoriteList: true)
+                CellContentView(comic: item, inFavoriteList: false)
             }
         }
     }
 
-    func makeDataSource() -> FavoriteModels.DataSource {
+    func makeDataSource() -> HistoryListModels.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
@@ -119,19 +125,43 @@ private extension FavoriteVC {
             return nil
         }
 
-        let action = UIContextualAction(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
-            self?.vm.doAction(.removeFavorite(comic: comic))
+        let result = UISwipeActionsConfiguration(actions: [
+            makeHistoryActionForComic(comic),
+            makeFavoriteActionForComic(comic),
+        ])
+
+        result.performsFirstActionWithFullSwipe = false
+
+        return result
+    }
+
+    func makeHistoryActionForComic(_ comic: Comic) -> UIContextualAction {
+        let action = UIContextualAction(style: .normal, title: "移除紀錄") { [weak self] _, _, _ in
+            self?.vm.doAction(.removeHistory(comic: comic))
         }
 
-        action.backgroundColor = .orange
+        action.backgroundColor = .red
 
-        return .init(actions: [action])
+        return action
+    }
+
+    func makeFavoriteActionForComic(_ comic: Comic) -> UIContextualAction {
+        let favorited = comic.favorited
+        let title = favorited ? "取消收藏" : "加入收藏"
+
+        let action = UIContextualAction(style: .normal, title: title) { [weak self] _, _, _ in
+            self?.vm.doAction(.updateFavorite(comic: comic))
+        }
+
+        action.backgroundColor = favorited ? .orange : .blue
+
+        return action
     }
 }
 
 // MARK: - UICollectionViewDelegate
 
-extension FavoriteVC: UICollectionViewDelegate {
+extension HistoryListVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -145,7 +175,7 @@ extension FavoriteVC: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension FavoriteVC: ScrollToTopable {
+extension HistoryListVC: ScrollToTopable {
     func scrollToTop() {
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)
