@@ -9,15 +9,21 @@ import SwiftUI
 import UIKit
 
 struct CellContentView: View {
+    enum CellType {
+        case update
+        case favorite
+        case history
+    }
+
     @Bindable var comic: Comic
     let dateFormatter = DateFormatter()
     let converURL: URL?
     let lastUpdate: String
-    let inFavoriteList: Bool
+    let cellType: CellType
 
-    init(comic: Comic, inFavoriteList: Bool) {
+    init(comic: Comic, cellType: CellType) {
         self.comic = comic
-        self.inFavoriteList = inFavoriteList
+        self.cellType = cellType
 
         if let uri = comic.detail?.cover {
             self.converURL = URL(string: "https:\(uri)")
@@ -39,7 +45,8 @@ struct CellContentView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .top) {
-                    if comic.favorited, !inFavoriteList {
+                    // 在非 Favorite Cell 下, 才會出現
+                    if comic.favorited, cellType != .favorite {
                         Image(systemName: "star.fill")
                             .font(.headline)
                             .foregroundColor(.blue)
@@ -54,14 +61,18 @@ struct CellContentView: View {
 
                 Spacer(minLength: 8)
 
-                Text(makeWatchDate())
-                    .font(.footnote)
+                // 在非 Update Cell 下, 才會出現
+                if cellType != .update {
+                    Text(makeWatchDate())
+                        .font(.footnote)
+                }
 
                 HStack {
                     Text(lastUpdate)
                         .font(.footnote)
 
-                    if comic.hasNew {
+                    // 在非 Update Cell 下, 才會出現
+                    if comic.hasNew, cellType != .update {
                         Text("New")
                             .font(.footnote)
                             .foregroundStyle(.red)

@@ -107,7 +107,7 @@ private extension HistoryListVC {
     func makeCell() -> HistoryListModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
-                CellContentView(comic: item, inFavoriteList: false)
+                CellContentView(comic: item, cellType: .history)
             }
         }
     }

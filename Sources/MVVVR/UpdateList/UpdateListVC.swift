@@ -127,7 +127,7 @@ private extension UpdateListVC {
     func makeCell() -> UpdateListModels.CellRegistration {
         .init { cell, _, item in
             cell.contentConfiguration = UIHostingConfiguration {
-                CellContentView(comic: item, inFavoriteList: false)
+                CellContentView(comic: item, cellType: .update)
             }
         }
     }
