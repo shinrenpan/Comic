@@ -70,12 +70,11 @@ private extension ReaderVC {
 
     func setupSelf() {
         view.backgroundColor = vo.mainView.backgroundColor
-        navigationItem.rightBarButtonItem = makeEpisodePickerItem()
 
         setToolbarItems([
             vo.prevItem,
             .init(systemItem: .flexibleSpace),
-            vo.directionItem,
+            vo.moreItem,
             .init(systemItem: .flexibleSpace),
             vo.nextItem,
         ], animated: false)
@@ -114,10 +113,7 @@ private extension ReaderVC {
             doLoadPrev()
         }
 
-        vo.directionItem.primaryAction = .init { [weak self] _ in
-            guard let self else { return }
-            horizontalRead.toggle()
-        }
+        vo.moreItem.menu = makeMoreItemMenu()
 
         vo.nextItem.primaryAction = .init(title: "下一話") { [weak self] _ in
             guard let self else { return }
@@ -145,7 +141,6 @@ private extension ReaderVC {
         vo.list.setCollectionViewLayout(layout, animated: false)
         layout.invalidateLayout()
         vo.list.reloadData()
-        vo.directionItem.title = horizontalRead ? "橫向閱讀" : "直式閱讀"
     }
 
     // MARK: - Handle State
@@ -202,13 +197,54 @@ private extension ReaderVC {
         }
     }
 
-    func makeEpisodePickerItem() -> UIBarButtonItem {
-        let action = UIAction { [weak self] _ in
+    func makeReaderDirectionAction() -> UIAction {
+        let title: String = horizontalRead ? "直式閱讀" : "橫向閱讀"
+
+        return .init(title: title) { [weak self] _ in
+            guard let self else { return }
+            horizontalRead.toggle()
+        }.setup(\.attributes, value: .disabled)
+    }
+
+    func makeEpisodePickAction() -> UIAction {
+        .init(title: "選取集數", image: .init(systemName: "list.number")) { [weak self] _ in
             guard let self else { return }
             router.showEpisodePicker(comic: vm.model.comic)
         }
+    }
 
-        return .init(image: .init(systemName: "list.number"), primaryAction: action)
+    func makeFaveriteAction() -> UIAction {
+        let title: String = vm.model.comic.favorited ? "取消收藏" : "加入收藏"
+        let image: UIImage? = vm.model.comic.favorited ? .init(systemName: "star.fill") : .init(systemName: "star")
+
+        return .init(title: title, image: image) { [weak self] _ in
+            guard let self else { return }
+            vm.model.comic.favorited.toggle()
+        }
+    }
+
+    func makeMoreItemMenu() -> UIMenu {
+        let readerDirection = UIDeferredMenuElement.uncached { [weak self] completion in
+            guard let self else { return }
+            let action = makeReaderDirectionAction()
+
+            DispatchQueue.main.async {
+                completion([action])
+            }
+        }
+
+        let episodePick = makeEpisodePickAction()
+
+        let favorite = UIDeferredMenuElement.uncached { [weak self] completion in
+            guard let self else { return }
+            let action = makeFaveriteAction()
+
+            DispatchQueue.main.async {
+                completion([action])
+            }
+        }
+
+        return .init(title: "更多...", children: [readerDirection, favorite, episodePick])
     }
 
     // MARK: - Do Something
