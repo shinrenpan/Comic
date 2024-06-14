@@ -17,8 +17,9 @@ final class ReaderVO {
     let prevItem = UIBarButtonItem(title: "上一話")
         .setup(\.isEnabled, value: false)
 
-    let directionItem = UIBarButtonItem(title: "")
+    let moreItem = UIBarButtonItem(title: "更多...")
         .setup(\.isEnabled, value: false)
+
     let nextItem = UIBarButtonItem(title: "下一話")
         .setup(\.isEnabled, value: false)
 
@@ -48,6 +49,8 @@ extension ReaderVO {
         mainView.isHidden = false
         list.reloadData()
         mainView.isUserInteractionEnabled = true
+        moreItem.isEnabled = true
+
         prevItem.isEnabled = model.hasPrev
         prevItem.title = model.prevEpisode?.title ?? "上一話"
         nextItem.isEnabled = model.hasNext
@@ -63,7 +66,7 @@ extension ReaderVO {
         mainView.isHidden = true
         prevItem.isEnabled = false
         prevLabel.isHidden = true
-        directionItem.isEnabled = false
+        moreItem.isEnabled = false
         nextItem.isEnabled = false
         nextLabel.isHidden = true
     }
