@@ -34,14 +34,14 @@ private extension HistoryListVM {
 
     func actionLoadCache() {
         Task {
-            let comics = await DBWorker.shared.getHistoryList()
+            let comics = await DBWorker.shared.getComicHistoryList()
             state = .dataLoaded(comics: comics)
         }
     }
 
     func actionRemoveHistory(_ comic: Comic) {
         Task {
-            await DBWorker.shared.removeComicWatched(comic)
+            await DBWorker.shared.removeComicHistory(comic)
             actionLoadCache()
         }
     }

@@ -43,7 +43,7 @@ private extension UpdateListVM {
 
     func actionLoadCache() {
         Task {
-            let comics = await DBWorker.shared.getAll()
+            let comics = await DBWorker.shared.getComicList()
             state = .dataLoaded(comics: comics)
         }
     }
@@ -53,7 +53,7 @@ private extension UpdateListVM {
             do {
                 let result = try await parser.start()
                 let array = AnyCodable(result).anyArray ?? []
-                await DBWorker.shared.insertOrUpdate(array)
+                await DBWorker.shared.insertOrUpdateComics(array)
                 actionLoadCache()
             }
             catch {
@@ -64,7 +64,7 @@ private extension UpdateListVM {
 
     func actionSearch(_ keywords: String) {
         Task {
-            let comics = await DBWorker.shared.getSearchList(keywords: keywords)
+            let comics = await DBWorker.shared.getComicListByKeywords(keywords)
             state = .dataLoaded(comics: comics)
         }
     }
