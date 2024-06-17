@@ -45,8 +45,8 @@ private extension SettingVC {
             switch state {
             case .none:
                 self?.stateNone()
-            case .dataLoaded:
-                self?.stateDataLoaded()
+            case let .dataLoaded(items):
+                self?.stateDataLoaded(items)
             }
         }.store(in: &binding)
     }
@@ -61,7 +61,6 @@ private extension SettingVC {
             vo.mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
 
-        vo.list.setCollectionViewLayout(makeListLayout(), animated: false)
         vo.list.dataSource = dataSource
         vo.list.delegate = self
     }
@@ -70,17 +69,11 @@ private extension SettingVC {
 
     func stateNone() {}
 
-    func stateDataLoaded() {
-        vo.reloadUI(model: vm.model, dataSource: dataSource)
+    func stateDataLoaded(_ items: [SettingModels.Item]) {
+        vo.reloadUI(items: items, dataSource: dataSource)
     }
 
     // MARK: - Make Something
-
-    func makeListLayout() -> UICollectionViewCompositionalLayout {
-        let config = UICollectionLayoutListConfiguration(appearance: .plain)
-
-        return UICollectionViewCompositionalLayout.list(using: config)
-    }
 
     func makeCell() -> SettingModels.CellRegistration {
         .init { cell, _, item in
@@ -118,16 +111,13 @@ private extension SettingVC {
 
     func doTapItem(_ item: SettingModels.Item, for cell: UICollectionViewCell?) {
         switch item.settingType {
-        // 點中本地端資料 / 版本不做事
-        case .localData, .version:
-            return
         case .cacheSize, .favorite, .history:
-            let actions: [UIAlertAction] = [
-                makeActionForItem(item),
-                .init(title: "取消", style: .cancel),
-            ]
+            let cancel = UIAlertAction(title: "取消", style: .cancel)
+            let itemAction = makeActionForItem(item)
+            router.showMenuForItem(item, actions: [itemAction, cancel], for: cell)
 
-            router.showMenuForItem(item, actions: actions, sourceView: cell)
+        case .localData, .version: // 點中本地端資料 / 版本不做事
+            return
         }
     }
 }

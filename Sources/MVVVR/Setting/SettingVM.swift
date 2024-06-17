@@ -43,7 +43,7 @@ private extension SettingVM {
             let cacheSize = await getCacheImagesSize()
             let version = Bundle.main.version + "/" + Bundle.main.build
 
-            model.items = [
+            let items: [SettingModels.Item] = [
                 .init(title: "本地資料", subTitle: "\(comicCount) 筆", settingType: .localData),
                 .init(title: "收藏紀錄", subTitle: "\(favoriteCount) 筆", settingType: .favorite),
                 .init(title: "觀看紀錄", subTitle: "\(historyCount) 筆", settingType: .history),
@@ -51,7 +51,7 @@ private extension SettingVM {
                 .init(title: "版本", subTitle: version, settingType: .version),
             ]
 
-            state = .dataLoaded
+            state = .dataLoaded(items: items)
         }
     }
 
