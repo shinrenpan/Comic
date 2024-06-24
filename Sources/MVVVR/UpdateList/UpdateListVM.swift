@@ -12,11 +12,7 @@ import WebParser
 final class UpdateListVM {
     @Published var state = UpdateListModels.State.none
     let model = UpdateListModels.DisplayModel()
-    let parser: Parser
-
-    init() {
-        self.parser = .init(parserConfiguration: model.parserSetting)
-    }
+    let parser = Parser(parserConfiguration: .update())
 }
 
 // MARK: - Public
@@ -28,7 +24,7 @@ extension UpdateListVM {
             actionLoadCache()
         case .loadData:
             actionLoadData()
-        case let .search(keywords):
+        case let .localSearch(keywords):
             actionSearch(keywords)
         case let .updateFavorite(comic):
             actionUpdateFavorite(comic)

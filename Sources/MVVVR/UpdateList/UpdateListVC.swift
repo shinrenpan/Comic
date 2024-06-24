@@ -40,7 +40,7 @@ private extension UpdateListVC {
 
         let searchVC = UISearchController()
         searchVC.searchResultsUpdater = self
-        searchVC.searchBar.placeholder = "漫畫名稱"
+        searchVC.searchBar.placeholder = "本地搜尋漫畫名稱"
         navigationItem.searchController = searchVC
         navigationItem.preferredSearchBarPlacement = .stacked
         navigationItem.hidesSearchBarWhenScrolling = false
@@ -176,7 +176,7 @@ private extension UpdateListVC {
         if let keywords = navigationItem.searchController?.searchBar.text?.gb,
            !keywords.isEmpty
         {
-            vm.doAction(.search(keywords))
+            vm.doAction(.localSearch(keywords: keywords))
         }
         else {
             vm.doAction(.loadCache)
