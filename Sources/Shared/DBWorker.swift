@@ -14,7 +14,7 @@ actor DBWorker {
     private var context: ModelContext?
 
     private init() {
-        self.container = try? ModelContainer(for: Comic.self)
+        self.container = try? ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self)
 
         if let container {
             self.context = .init(container)
