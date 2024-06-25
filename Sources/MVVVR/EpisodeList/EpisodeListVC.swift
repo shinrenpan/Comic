@@ -12,7 +12,7 @@ final class EpisodeListVC: UIViewController {
     let vm: EpisodeListVM
     let router = EpisodeListRouter()
     var binding: Set<AnyCancellable> = .init()
-    weak var delegate: EpisodeListDelegate?
+    weak var selectedDelegate: EpisodeListModels.SelectedDelegate?
     lazy var dataSource = makeDataSource()
 
     init(comic: Comic) {
@@ -52,8 +52,8 @@ private extension EpisodeListVC {
             switch state {
             case .none:
                 self?.stateNone()
-            case let .dataLoaded(episodes, watchId):
-                self?.stateDataLoaded(episodes: episodes, watchId: watchId)
+            case let .dataLoaded(response):
+                self?.stateDataLoaded(response: response)
             }
         }.store(in: &binding)
     }
@@ -76,43 +76,49 @@ private extension EpisodeListVC {
 
     func stateNone() {}
 
-    func stateDataLoaded(episodes: [Comic.Episode], watchId: String?) {
-        let row = episodes.firstIndex(where: { $0.id == watchId })
+    func stateDataLoaded(response: EpisodeListModels.State.DataLoadedResponse) {
+        let row = response.episodes.firstIndex(where: { $0.id == response.watchId })
         var snapshot = EpisodeListModels.Snapshot()
         snapshot.appendSections([.main])
-        snapshot.appendItems(episodes, toSection: .main)
+        snapshot.appendItems(response.episodes, toSection: .main)
         snapshot.reloadSections([.main])
 
         dataSource.apply(snapshot) {
             if let row {
-                self.vo.list.scrollToRow(at: .init(row: row, section: 0), at: .middle, animated: true)
+                self.vo.list.scrollToItem(at: .init(row: row, section: 0), at: .centeredVertically, animated: true)
             }
         }
     }
 
-    func makeDataSource() -> EpisodeListModels.DataSource {
-        .init(tableView: vo.list) { [weak self] tableView, indexPath, episode in
+    // MARK: - Make Something
+
+    func makeCell() -> EpisodeListModels.CellRegistration {
+        .init { [weak self] cell, _, episode in
             let watched = self?.vm.model.comic.watchedId == episode.id
             var config = UIListContentConfiguration.cell()
             config.text = episode.title
-
-            let cell = tableView.reuseCell(UITableViewCell.self, for: indexPath)
             cell.contentConfiguration = config
-            cell.accessoryType = watched ? .checkmark : .none
+            cell.accessories = watched ? [.checkmark()] : []
+        }
+    }
 
-            return cell
+    func makeDataSource() -> EpisodeListModels.DataSource {
+        let cell = makeCell()
+
+        return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
+            collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: itemIdentifier)
         }
     }
 }
 
-// MARK: - UITableViewDelegate
+// MARK: - UICollectionViewDelegate
 
-extension EpisodeListVC: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+extension EpisodeListVC: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let epidose = dataSource.itemIdentifier(for: indexPath) else {
             return
         }
 
-        delegate?.list(self, selected: epidose)
+        selectedDelegate?.list(self, selected: epidose)
     }
 }

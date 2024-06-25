@@ -15,7 +15,7 @@ final class ReaderRouter {
 extension ReaderRouter {
     func showEpisodePicker(comic: Comic) {
         let list = EpisodeListVC(comic: comic)
-        list.delegate = vc
+        list.selectedDelegate = vc
 
         let to = UINavigationController(rootViewController: list)
         if let sheet = to.sheetPresentationController {

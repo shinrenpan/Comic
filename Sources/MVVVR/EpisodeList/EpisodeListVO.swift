@@ -11,7 +11,7 @@ final class EpisodeListVO {
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         .setup(\.backgroundColor, value: .white)
 
-    let list = UITableView(frame: .zero, style: .plain)
+    let list = UICollectionView(frame: .zero, collectionViewLayout: makeListLayout())
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
 
     init() {
@@ -25,7 +25,6 @@ private extension EpisodeListVO {
     // MARK: Add Something
 
     func addViews() {
-        list.registerCell(UITableViewCell.self)
         mainView.addSubview(list)
 
         NSLayoutConstraint.activate([
@@ -34,5 +33,13 @@ private extension EpisodeListVO {
             list.trailingAnchor.constraint(equalTo: mainView.trailingAnchor),
             list.bottomAnchor.constraint(equalTo: mainView.bottomAnchor),
         ])
+    }
+
+    // MARK: - Make Something
+
+    static func makeListLayout() -> UICollectionViewCompositionalLayout {
+        let config = UICollectionLayoutListConfiguration(appearance: .plain)
+
+        return UICollectionViewCompositionalLayout.list(using: config)
     }
 }
