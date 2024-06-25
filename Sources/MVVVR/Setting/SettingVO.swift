@@ -11,7 +11,7 @@ final class SettingVO {
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         .setup(\.backgroundColor, value: .white)
 
-    let list = UICollectionView(frame: .zero, collectionViewLayout: .init())
+    let list = UICollectionView(frame: .zero, collectionViewLayout: makeListLayout())
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
 
     init() {
@@ -22,10 +22,10 @@ final class SettingVO {
 // MARK: - Public
 
 extension SettingVO {
-    func reloadUI(model: SettingModels.DisplayModel, dataSource: SettingModels.DataSource) {
+    func reloadUI(items: [SettingModels.Item], dataSource: SettingModels.DataSource) {
         var snapshot = SettingModels.Snapshot()
         snapshot.appendSections([.main])
-        snapshot.appendItems(model.items, toSection: .main)
+        snapshot.appendItems(items, toSection: .main)
         snapshot.reloadSections([.main])
 
         dataSource.apply(snapshot)
@@ -46,5 +46,13 @@ private extension SettingVO {
             list.trailingAnchor.constraint(equalTo: mainView.trailingAnchor),
             list.bottomAnchor.constraint(equalTo: mainView.bottomAnchor),
         ])
+    }
+
+    // MARK: - Make Something
+
+    static func makeListLayout() -> UICollectionViewCompositionalLayout {
+        let config = UICollectionLayoutListConfiguration(appearance: .plain)
+
+        return UICollectionViewCompositionalLayout.list(using: config)
     }
 }

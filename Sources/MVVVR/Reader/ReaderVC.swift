@@ -347,9 +347,9 @@ extension ReaderVC: UICollectionViewDelegateFlowLayout {
     }
 }
 
-// MARK: - EpisodeListDelegate
+// MARK: - EpisodeListModels.SelectedDelegate
 
-extension ReaderVC: EpisodeListDelegate {
+extension ReaderVC: EpisodeListModels.SelectedDelegate {
     func list(_ list: EpisodeListVC, selected episode: Comic.Episode) {
         list.dismiss(animated: true) {
             self.doLoadEpisode(episode)

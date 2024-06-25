@@ -14,7 +14,7 @@ actor DBWorker {
     private var context: ModelContext?
 
     private init() {
-        self.container = try? ModelContainer(for: Comic.self)
+        self.container = try? ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self)
 
         if let container {
             self.context = .init(container)
@@ -26,7 +26,10 @@ actor DBWorker {
 // MARK: - Public
 
 extension DBWorker {
-    func getById(_ id: String) -> Comic? {
+    /// 取得單一漫畫 by Id.
+    /// - Parameter id: 漫畫 Id.
+    /// - Returns: 返回單一漫畫.
+    func getComicById(_ id: String) -> Comic? {
         let descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
             comic.id == id
         })
@@ -34,7 +37,8 @@ extension DBWorker {
         return try? context?.fetch(descriptor).first
     }
 
-    func getAll() -> [Comic] {
+    /// 取得所有漫畫列表.
+    func getComicList() -> [Comic] {
         let descriptor = FetchDescriptor<Comic>(sortBy: [
             SortDescriptor(\.lastUpdate, order: .reverse),
         ])
@@ -42,31 +46,10 @@ extension DBWorker {
         return (try? context?.fetch(descriptor)) ?? []
     }
 
-    func getHistoryList() -> [Comic] {
-        var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
-            comic.watchedId != nil
-        })
-
-        descriptor.sortBy = [
-            SortDescriptor(\.watchDate, order: .reverse),
-        ]
-
-        return (try? context?.fetch(descriptor)) ?? []
-    }
-
-    func getFavoriteList() -> [Comic] {
-        var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
-            comic.favorited
-        })
-
-        descriptor.sortBy = [
-            SortDescriptor(\.lastUpdate, order: .reverse),
-        ]
-
-        return (try? context?.fetch(descriptor)) ?? []
-    }
-
-    func getSearchList(keywords: String) -> [Comic] {
+    /// 取得依關鍵字搜尋的漫畫列表.
+    /// - Parameter keywords: 關鍵字.
+    /// - Returns: 返回漫畫列表.
+    func getComicListByKeywords(_ keywords: String) -> [Comic] {
         if keywords.isEmpty { return [] }
 
         let descriptor = FetchDescriptor<Comic>(
@@ -81,7 +64,39 @@ extension DBWorker {
         return (try? context?.fetch(descriptor)) ?? []
     }
 
-    func updateEpisodes(comic: Comic, episodes: [Comic.Episode]) {
+    /// 取得觀看過的漫畫列表.
+    /// - Returns: 返回漫畫列表.
+    func getComicHistoryList() -> [Comic] {
+        var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+            comic.watchedId != nil
+        })
+
+        descriptor.sortBy = [
+            SortDescriptor(\.watchDate, order: .reverse),
+        ]
+
+        return (try? context?.fetch(descriptor)) ?? []
+    }
+
+    /// 取得加入收藏的漫畫列表.
+    /// - Returns: 返回漫畫列表.
+    func getComicFavoriteList() -> [Comic] {
+        var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+            comic.favorited
+        })
+
+        descriptor.sortBy = [
+            SortDescriptor(\.lastUpdate, order: .reverse),
+        ]
+
+        return (try? context?.fetch(descriptor)) ?? []
+    }
+
+    /// 更新漫畫集數.
+    /// - Parameters:
+    ///   - comic: 要更新的漫畫.
+    ///   - episodes: 集數.
+    func updateComicEpisodes(_ comic: Comic, episodes: [Comic.Episode]) {
         comic.episodes?.forEach {
             context?.delete($0)
         }
@@ -90,25 +105,34 @@ extension DBWorker {
         comic.updateHasNew()
     }
 
-    func removeAllWatched() {
-        for comic in getAll() {
-            removeComicWatched(comic)
+    /// 移除所有觀看過的漫畫.
+    func removeAllComicHistory() {
+        for comic in getComicList() {
+            removeComicHistory(comic)
         }
     }
 
-    func removeComicWatched(_ comic: Comic) {
+    /// 移除單一漫畫的觀看紀錄.
+    /// - Parameter comic: 要移除的漫畫.
+    func removeComicHistory(_ comic: Comic) {
         comic.watchedId = nil
         comic.watchDate = nil
         comic.updateHasNew()
     }
 
-    func addComicWatched(_ comic: Comic, episode: Comic.Episode) {
+    /// 新增單一漫畫觀看紀錄.
+    /// - Parameters:
+    ///   - comic: 要新增的漫畫.
+    ///   - episode: 觀看的級數.
+    func addComicHistory(_ comic: Comic, episode: Comic.Episode) {
         comic.watchedId = episode.id
         comic.watchDate = .now
         comic.updateHasNew()
     }
 
-    func insertOrUpdate(_ anyCodables: [AnyCodable]) {
+    /// 新增或更新漫畫
+    /// - Parameter anyCodables: 要新增或更新的資料.
+    func insertOrUpdateComics(_ anyCodables: [AnyCodable]) {
         for anyCodable in anyCodables {
             guard let id = anyCodable["id"].string, !id.isEmpty else {
                 continue
@@ -119,7 +143,7 @@ extension DBWorker {
             let lastUpdate = anyCodable["lastUpdate"].double ?? Date().timeIntervalSince1970
             let detailCover = anyCodable["detail"]["cover"].string ?? ""
 
-            if let comic = getById(id) {
+            if let comic = getComicById(id) {
                 comic.title = anyCodable["title"].string ?? "unKnown"
                 comic.note = note
                 comic.lastUpdate = lastUpdate

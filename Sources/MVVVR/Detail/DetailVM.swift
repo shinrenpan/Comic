@@ -83,7 +83,7 @@ private extension DetailVM {
             return .init(id: id, index: index, title: title)
         }
 
-        await DBWorker.shared.updateEpisodes(comic: model.comic, episodes: episodes)
+        await DBWorker.shared.updateComicEpisodes(model.comic, episodes: episodes)
 
         model.reloadEpisodes()
     }

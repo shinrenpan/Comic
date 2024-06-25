@@ -108,7 +108,7 @@ private extension ReaderVM {
         }
 
         if !model.images.isEmpty {
-            await DBWorker.shared.addComicWatched(model.comic, episode: model.currentEpisode)
+            await DBWorker.shared.addComicHistory(model.comic, episode: model.currentEpisode)
         }
     }
 

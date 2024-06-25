@@ -6,10 +6,6 @@
 
 import UIKit
 
-protocol EpisodeListDelegate: UIViewController {
-    func list(_ list: EpisodeListVC, selected episode: Comic.Episode)
-}
-
 enum EpisodeListModels {}
 
 // MARK: - Action
@@ -25,15 +21,28 @@ extension EpisodeListModels {
 extension EpisodeListModels {
     enum State {
         case none
-        case dataLoaded(episodes: [Comic.Episode], watchedId: String?)
+
+        /// DataLoaded Response
+        struct DataLoadedResponse {
+            let episodes: [Comic.Episode]
+            let watchId: String?
+        }
+
+        case dataLoaded(response: DataLoadedResponse)
     }
 }
 
-// MARK: - Other Model for DisplayModel
+// MARK: - Others
 
 extension EpisodeListModels {
-    typealias DataSource = UITableViewDiffableDataSource<Section, Comic.Episode>
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, Comic.Episode>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Comic.Episode>
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic.Episode>
+
+    /// Delegate for handling selected episode
+    protocol SelectedDelegate: UIViewController {
+        func list(_ list: EpisodeListVC, selected episode: Comic.Episode)
+    }
 
     enum Section {
         case main

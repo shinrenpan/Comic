@@ -15,7 +15,8 @@ extension UpdateListModels {
     enum Action {
         case loadCache
         case loadData
-        case search(_ keywords: String)
+        /// 本地搜尋
+        case localSearch(keywords: String)
         case updateFavorite(comic: Comic)
     }
 }
@@ -45,21 +46,5 @@ extension UpdateListModels {
 // MARK: - Display Model for ViewModel
 
 extension UpdateListModels {
-    final class DisplayModel {
-        let parserSetting: ParserConfiguration
-
-        init() {
-            let uri = "https://www.manhuagui.com/update/"
-            let urlComponents = URLComponents(string: uri)!
-
-            self.parserSetting = .init(
-                request: .init(url: urlComponents.url!),
-                windowSize: .init(width: 1920, height: 1080),
-                customUserAgent: .UserAgent.safari.value,
-                retryCount: 30,
-                retryDuration: 1,
-                javascript: .JavaScript.update.value
-            )
-        }
-    }
+    final class DisplayModel {}
 }

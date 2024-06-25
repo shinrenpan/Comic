@@ -12,9 +12,13 @@ enum SettingModels {}
 
 extension SettingModels {
     enum Action {
+        /// 載入資料
         case loadData
+        /// 清除所有收藏
         case cleanFavorite
+        /// 清除所有觀看紀錄
         case cleanHistory
+        /// 清除本地暫存圖片
         case cleanCache
     }
 }
@@ -24,7 +28,7 @@ extension SettingModels {
 extension SettingModels {
     enum State {
         case none
-        case dataLoaded
+        case dataLoaded(items: [Item])
     }
 }
 
@@ -40,16 +44,24 @@ extension SettingModels {
     }
 
     enum SettingType {
+        /// 本地資料
         case localData
+        /// 收藏紀錄
         case favorite
+        /// 觀看紀錄
         case history
+        /// 圖片暫存大小
         case cacheSize
+        /// App 版號
         case version
     }
 
     final class Item: NSObject {
+        /// 左邊 Title
         let title: String
+        /// 右邊 Title
         let subTitle: String
+        /// 類型
         let settingType: SettingType
 
         init(title: String, subTitle: String, settingType: SettingType) {
@@ -63,7 +75,5 @@ extension SettingModels {
 // MARK: - Display Model for ViewModel
 
 extension SettingModels {
-    final class DisplayModel {
-        var items: [Item] = []
-    }
+    final class DisplayModel {}
 }

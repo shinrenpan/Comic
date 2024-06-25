@@ -35,4 +35,18 @@ extension ParserConfiguration {
             javascript: .JavaScript.images.value
         )
     }
+
+    static func update() -> Self {
+        let uri = "https://www.manhuagui.com/update/"
+        let urlComponents = URLComponents(string: uri)!
+
+        return .init(
+            request: .init(url: urlComponents.url!),
+            windowSize: .init(width: 1920, height: 1080),
+            customUserAgent: .UserAgent.safari.value,
+            retryCount: 30,
+            retryDuration: 1,
+            javascript: .JavaScript.update.value
+        )
+    }
 }

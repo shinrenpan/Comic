@@ -34,6 +34,12 @@ private extension EpisodeListVM {
 
     func actionLoadData() {
         let episodes = model.comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
-        state = .dataLoaded(episodes: episodes, watchedId: model.comic.watchedId)
+
+        let response = EpisodeListModels.State.DataLoadedResponse(
+            episodes: episodes,
+            watchId: model.comic.watchedId
+        )
+
+        state = .dataLoaded(response: response)
     }
 }
