@@ -1,3 +1,7 @@
+## Open Project
+
+Use [XcodeGen](https://github.com/yonaskolb/XcodeGen)
+
 ## Star History
 
 <a href="https://star-history.com/#shinrenpan/comic&Date">
