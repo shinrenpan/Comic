@@ -71,7 +71,12 @@ private extension SettingVC {
 
     func stateDataLoaded(_ items: [SettingModels.Item]) {
         LoadingView.hide()
-        vo.reloadUI(items: items, dataSource: dataSource)
+
+        var snapshot = SettingModels.Snapshot()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(items, toSection: .main)
+        snapshot.reloadSections([.main])
+        dataSource.apply(snapshot)
     }
 
     // MARK: - Make Something
