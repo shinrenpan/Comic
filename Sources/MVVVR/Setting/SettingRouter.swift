@@ -13,7 +13,7 @@ final class SettingRouter {
 // MARK: - Public
 
 extension SettingRouter {
-    func showMenuForItem(_ item: SettingModels.Item, actions: [UIAlertAction], for cell: UICollectionViewCell?) {
+    func showMenuForItem(item: SettingModels.Item, actions: [UIAlertAction], cell: UICollectionViewCell?) {
         let sheet = UIAlertController(
             title: "清除\(item.title)",
             message: "是否確定清除\(item.title)",

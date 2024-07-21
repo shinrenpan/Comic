@@ -21,8 +21,8 @@ final class SettingVC: UIViewController {
         setupVO()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    override func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
         vm.doAction(.loadData)
     }
 }
@@ -40,13 +40,14 @@ private extension SettingVC {
 
     func setupBinding() {
         vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            if self?.viewIfLoaded?.window == nil { return }
+            guard let self else { return }
+            if viewIfLoaded?.window == nil { return }
 
             switch state {
             case .none:
-                self?.stateNone()
+                stateNone()
             case let .dataLoaded(items):
-                self?.stateDataLoaded(items)
+                stateDataLoaded(items)
             }
         }.store(in: &binding)
     }
@@ -61,7 +62,6 @@ private extension SettingVC {
             vo.mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
 
-        vo.list.dataSource = dataSource
         vo.list.delegate = self
     }
 
@@ -70,6 +70,7 @@ private extension SettingVC {
     func stateNone() {}
 
     func stateDataLoaded(_ items: [SettingModels.Item]) {
+        LoadingView.hide()
         vo.reloadUI(items: items, dataSource: dataSource)
     }
 
@@ -92,15 +93,17 @@ private extension SettingVC {
         }
     }
 
-    func makeActionForItem(_ item: SettingModels.Item) -> UIAlertAction {
+    func makeItemAction(item: SettingModels.Item) -> UIAlertAction {
         .init(title: "確定清除", style: .destructive) { [weak self] _ in
+            guard let self else { return }
+
             switch item.settingType {
             case .favorite:
-                self?.vm.doAction(.cleanFavorite)
+                doCleanAction(action: .cleanFavorite)
             case .history:
-                self?.vm.doAction(.cleanHistory)
+                doCleanAction(action: .cleanHistory)
             case .cacheSize:
-                self?.vm.doAction(.cleanCache)
+                doCleanAction(action: .cleanCache)
             case .version, .localData:
                 break
             }
@@ -109,16 +112,21 @@ private extension SettingVC {
 
     // MARK: - Do Something
 
-    func doTapItem(_ item: SettingModels.Item, for cell: UICollectionViewCell?) {
+    func doTapItem(item: SettingModels.Item, cell: UICollectionViewCell?) {
         switch item.settingType {
         case .cacheSize, .favorite, .history:
             let cancel = UIAlertAction(title: "取消", style: .cancel)
-            let itemAction = makeActionForItem(item)
-            router.showMenuForItem(item, actions: [itemAction, cancel], for: cell)
+            let itemAction = makeItemAction(item: item)
+            router.showMenuForItem(item: item, actions: [itemAction, cancel], cell: cell)
 
         case .localData, .version: // 點中本地端資料 / 版本不做事
             return
         }
+    }
+
+    func doCleanAction(action: SettingModels.Action) {
+        LoadingView.show(text: "Cleaning...")
+        vm.doAction(action)
     }
 }
 
@@ -133,6 +141,6 @@ extension SettingVC: UICollectionViewDelegate {
         }
 
         let cell = collectionView.cellForItem(at: indexPath)
-        doTapItem(item, for: cell)
+        doTapItem(item: item, cell: cell)
     }
 }

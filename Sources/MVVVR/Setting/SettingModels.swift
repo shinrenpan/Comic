@@ -6,7 +6,11 @@
 
 import UIKit
 
-enum SettingModels {}
+enum SettingModels {
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
+    typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Item>
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, SettingModels.Item>
+}
 
 // MARK: - Action
 
@@ -35,10 +39,6 @@ extension SettingModels {
 // MARK: - Other Model for DisplayModel
 
 extension SettingModels {
-    typealias DataSource = UICollectionViewDiffableDataSource<Section, Item>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Item>
-    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, SettingModels.Item>
-
     enum Section {
         case main
     }
