@@ -21,25 +21,6 @@ final class UpdateListVO {
     }
 }
 
-// MARK: - Public
-
-extension UpdateListVO {
-    func reloadUI(comics: [Comic], dataSource: UpdateListModels.DataSource) {
-        list.refreshControl?.endRefreshing()
-
-        var snapshot = UpdateListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
-        dataSource.apply(snapshot)
-    }
-
-    func reloadItem(_ item: Comic, dataSource: UpdateListModels.DataSource) {
-        var snapshot = dataSource.snapshot()
-        snapshot.reloadItems([item])
-        dataSource.apply(snapshot)
-    }
-}
-
 // MARK: - Private
 
 private extension UpdateListVO {
