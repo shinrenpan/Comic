@@ -7,6 +7,16 @@
 import UIKit
 
 extension UIViewController {
+    static func makeEmpty(text: String = "空空如也") -> UIContentUnavailableConfiguration {
+        var result = UIContentUnavailableConfiguration.empty()
+        result.background.backgroundColor = .white
+        result.text = "空空如也"
+        result.textProperties.font = .preferredFont(forTextStyle: .title1)
+        result.textProperties.color = .lightGray
+
+        return result
+    }
+
     func showEmptyUI(isEmpty: Bool) {
         switch isEmpty {
         case true:
@@ -21,11 +31,18 @@ extension UIViewController {
         }
     }
 
-    func showLoadingUI() {
+    func showLoadingUI(text: String = "Loading...") {
         var config = UIContentUnavailableConfiguration.loading()
-        config.text = ""
+        config.background.backgroundColor = .black.withAlphaComponent(0.5)
+        config.imageProperties.tintColor = .white
+        config.textProperties.color = .white
+        config.text = text
 
         contentUnavailableConfiguration = config
+    }
+
+    func hideLoadingUI() {
+        contentUnavailableConfiguration = nil
     }
 
     func showErrorUI(reload: UIAction?) {
