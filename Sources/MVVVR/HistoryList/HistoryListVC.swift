@@ -23,8 +23,8 @@ final class HistoryListVC: UIViewController {
         setupVO()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    override func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
         vm.doAction(.loadCache)
     }
 }
@@ -42,15 +42,20 @@ private extension HistoryListVC {
 
     func setupBinding() {
         vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            if self?.viewIfLoaded?.window == nil { return }
+            guard let self else { return }
+            if viewIfLoaded?.window == nil { return }
 
             switch state {
             case .none:
-                self?.stateNone()
-            case let .dataLoaded(comics):
-                self?.stateDataLoaded(comics: comics)
-            case let .dataUpdated(comic):
-                self?.stateDataUpdated(comic: comic)
+                stateNone()
+            case let .cacheLoaded(comics):
+                stateCacheLoaded(comics: comics)
+            case let .favoriteAdded(comic):
+                stateFavoriteAdded(comic: comic)
+            case let .favoriteRemoved(comic):
+                stateFavoriteRemoved(comic: comic)
+            case let .historyRemoved(comic):
+                stateHistoryRemoved(comic: comic)
             }
         }.store(in: &binding)
     }
@@ -66,7 +71,6 @@ private extension HistoryListVC {
         ])
 
         vo.list.setCollectionViewLayout(makeListLayout(), animated: false)
-        vo.list.dataSource = dataSource
         vo.list.delegate = self
     }
 
@@ -74,13 +78,37 @@ private extension HistoryListVC {
 
     func stateNone() {}
 
-    func stateDataLoaded(comics: [Comic]) {
-        vo.reloadUI(comics: comics, dataSource: dataSource)
-        showEmptyUI(isEmpty: comics.isEmpty)
+    func stateCacheLoaded(comics: [Comic]) {
+        var snapshot = HistoryListModels.Snapshot()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(comics, toSection: .main)
+
+        dataSource.apply(snapshot) { [weak self] in
+            guard let self else { return }
+            contentUnavailableConfiguration = comics.isEmpty ? Self.makeEmpty() : nil
+        }
     }
 
-    func stateDataUpdated(comic: Comic) {
-        vo.reloadItem(comic, dataSource: dataSource)
+    func stateFavoriteAdded(comic: Comic) {
+        var snapshot = dataSource.snapshot()
+        snapshot.reloadItems([comic])
+        dataSource.apply(snapshot)
+    }
+
+    func stateFavoriteRemoved(comic: Comic) {
+        var snapshot = dataSource.snapshot()
+        snapshot.reloadItems([comic])
+        dataSource.apply(snapshot)
+    }
+
+    func stateHistoryRemoved(comic: Comic) {
+        var snapshot = dataSource.snapshot()
+        snapshot.deleteItems([comic])
+
+        dataSource.apply(snapshot) { [weak self] in
+            guard let self else { return }
+            contentUnavailableConfiguration = snapshot.itemIdentifiers.isEmpty ? Self.makeEmpty() : nil
+        }
     }
 
     // MARK: - Make Something
@@ -92,13 +120,13 @@ private extension HistoryListVC {
         config.leadingSwipeActionsConfigurationProvider = { [weak self] indexPath in
             guard let self else { return nil }
 
-            return makeSwipeActionsForIndexPath(indexPath)
+            return makeSwipeActions(indexPath: indexPath)
         }
 
         config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
             guard let self else { return nil }
 
-            return makeSwipeActionsForIndexPath(indexPath)
+            return makeSwipeActions(indexPath: indexPath)
         }
 
         return UICollectionViewCompositionalLayout.list(using: config)
@@ -120,14 +148,14 @@ private extension HistoryListVC {
         }
     }
 
-    func makeSwipeActionsForIndexPath(_ indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func makeSwipeActions(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let comic = dataSource.itemIdentifier(for: indexPath) else {
             return nil
         }
 
         let result = UISwipeActionsConfiguration(actions: [
-            makeHistoryActionForComic(comic),
-            makeFavoriteActionForComic(comic),
+            makeHistoryAction(comic: comic),
+            makeFavoriteAction(comic: comic),
         ])
 
         result.performsFirstActionWithFullSwipe = false
@@ -135,7 +163,7 @@ private extension HistoryListVC {
         return result
     }
 
-    func makeHistoryActionForComic(_ comic: Comic) -> UIContextualAction {
+    func makeHistoryAction(comic: Comic) -> UIContextualAction {
         let action = UIContextualAction(style: .normal, title: "移除紀錄") { [weak self] _, _, _ in
             self?.vm.doAction(.removeHistory(comic: comic))
         }
@@ -145,15 +173,20 @@ private extension HistoryListVC {
         return action
     }
 
-    func makeFavoriteActionForComic(_ comic: Comic) -> UIContextualAction {
+    func makeFavoriteAction(comic: Comic) -> UIContextualAction {
         let favorited = comic.favorited
-        let title = favorited ? "取消收藏" : "加入收藏"
 
-        let action = UIContextualAction(style: .normal, title: title) { [weak self] _, _, _ in
-            self?.vm.doAction(.updateFavorite(comic: comic))
+        if favorited {
+            let action = UIContextualAction(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
+                self?.vm.doAction(.removeFavorite(comic: comic))
+            }.setup(\.backgroundColor, value: .orange)
+
+            return action
         }
 
-        action.backgroundColor = favorited ? .orange : .blue
+        let action = UIContextualAction(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
+            self?.vm.doAction(.addFavorite(comic: comic))
+        }.setup(\.backgroundColor, value: .blue)
 
         return action
     }

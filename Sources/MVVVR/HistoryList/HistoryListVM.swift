@@ -19,10 +19,12 @@ extension HistoryListVM {
         switch action {
         case .loadCache:
             actionLoadCache()
+        case let .addFavorite(comic):
+            actionAddFavorite(comic: comic)
+        case let .removeFavorite(comic):
+            actionRemoveFavorite(comic: comic)
         case let .removeHistory(comic):
-            actionRemoveHistory(comic)
-        case let .updateFavorite(comic):
-            actionUpdateFavorite(comic: comic)
+            actionRemoveHistory(comic: comic)
         }
     }
 }
@@ -35,19 +37,24 @@ private extension HistoryListVM {
     func actionLoadCache() {
         Task {
             let comics = await DBWorker.shared.getComicHistoryList()
-            state = .dataLoaded(comics: comics)
+            state = .cacheLoaded(comics: comics)
         }
     }
 
-    func actionRemoveHistory(_ comic: Comic) {
+    func actionAddFavorite(comic: Comic) {
+        comic.favorited = true
+        state = .favoriteAdded(comic: comic)
+    }
+
+    func actionRemoveFavorite(comic: Comic) {
+        comic.favorited = false
+        state = .favoriteRemoved(comic: comic)
+    }
+
+    func actionRemoveHistory(comic: Comic) {
         Task {
             await DBWorker.shared.removeComicHistory(comic)
-            actionLoadCache()
+            state = .historyRemoved(comic: comic)
         }
-    }
-
-    func actionUpdateFavorite(comic: Comic) {
-        comic.favorited.toggle()
-        state = .dataUpdated(comic: comic)
     }
 }
