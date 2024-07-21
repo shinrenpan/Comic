@@ -6,7 +6,11 @@
 
 import UIKit
 
-enum FavoriteListModels {}
+enum FavoriteListModels {
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, Comic>
+    typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Comic>
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
+}
 
 // MARK: - Action
 
@@ -22,17 +26,14 @@ extension FavoriteListModels {
 extension FavoriteListModels {
     enum State {
         case none
-        case dataLoaded(comics: [Comic])
+        case cacheLoaded(comics: [Comic])
+        case favoriteRemoved(comic: Comic)
     }
 }
 
 // MARK: - Other Model for DisplayModel
 
 extension FavoriteListModels {
-    typealias DataSource = UICollectionViewDiffableDataSource<Section, Comic>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Comic>
-    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
-
     enum Section {
         case main
     }
