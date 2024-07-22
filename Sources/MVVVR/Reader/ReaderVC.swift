@@ -43,7 +43,7 @@ final class ReaderVC: UIViewController {
 
     override func viewIsAppearing(_ animated: Bool) {
         super.viewIsAppearing(animated)
-        showLoadingUI()
+        LoadingView.show()
         vm.doAction(.loadData)
     }
 
@@ -148,6 +148,7 @@ private extension ReaderVC {
     func stateNone() {}
 
     func stateDataLoaded() {
+        LoadingView.hide()
         navigationItem.title = vm.model.currentEpisode.title
         contentUnavailableConfiguration = nil
         hideNavbar = !vm.model.images.isEmpty
@@ -158,7 +159,10 @@ private extension ReaderVC {
         if vm.model.images.isEmpty {
             hideNavbar = false
             vo.mainView.isHidden = true
-            showErrorUI(reload: makeReloadAction())
+            contentUnavailableConfiguration = Self.makeEmpty()
+        }
+        else {
+            contentUnavailableConfiguration = nil
         }
     }
 
@@ -192,7 +196,7 @@ private extension ReaderVC {
         .init { [weak self] _ in
             guard let self else { return }
             vo.mainView.isHidden = true
-            showLoadingUI()
+            LoadingView.show()
             vm.doAction(.loadData)
         }
     }
@@ -250,13 +254,13 @@ private extension ReaderVC {
     // MARK: - Do Something
 
     func doLoadPrev() {
-        showLoadingUI()
+        LoadingView.show()
         vo.reloadDisableAll()
         vm.doAction(.loadPrev)
     }
 
     func doLoadNext() {
-        showLoadingUI()
+        LoadingView.show()
         vo.reloadDisableAll()
         vm.doAction(.loadNext)
     }
@@ -266,7 +270,7 @@ private extension ReaderVC {
             return
         }
 
-        showLoadingUI()
+        LoadingView.show()
         vo.reloadDisableAll()
         vm.doAction(.loadEpidoe(episode))
     }
