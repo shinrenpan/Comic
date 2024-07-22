@@ -15,28 +15,13 @@ final class UpdateListVO {
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         .setup(\.keyboardDismissMode, value: .onDrag)
 
+    let searchItem = UIBarButtonItem()
+        .setup(\.title, value: "線上查詢")
+        .setup(\.isEnabled, value: false)
+
     init() {
         list.refreshControl = .init(frame: .zero)
         addViews()
-    }
-}
-
-// MARK: - Public
-
-extension UpdateListVO {
-    func reloadUI(comics: [Comic], dataSource: UpdateListModels.DataSource) {
-        list.refreshControl?.endRefreshing()
-
-        var snapshot = UpdateListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
-        dataSource.apply(snapshot)
-    }
-
-    func reloadItem(_ item: Comic, dataSource: UpdateListModels.DataSource) {
-        var snapshot = dataSource.snapshot()
-        snapshot.reloadItems([item])
-        dataSource.apply(snapshot)
     }
 }
 

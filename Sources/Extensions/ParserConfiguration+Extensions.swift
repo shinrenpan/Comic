@@ -8,7 +8,7 @@ import UIKit
 import WebParser
 
 extension ParserConfiguration {
-    static func makeParseDetail(_ comic: Comic) -> Self {
+    static func detail(comic: Comic) -> Self {
         let uri = "https://m.manhuagui.com/comic/" + comic.id
         let urlComponents = URLComponents(string: uri)!
 

@@ -23,8 +23,8 @@ final class FavoriteListVC: UIViewController {
         setupVO()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    override func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
         vm.doAction(.loadCache)
     }
 }
@@ -42,13 +42,16 @@ private extension FavoriteListVC {
 
     func setupBinding() {
         vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            if self?.viewIfLoaded?.window == nil { return }
+            guard let self else { return }
+            if viewIfLoaded?.window == nil { return }
 
             switch state {
             case .none:
-                self?.stateNone()
-            case let .dataLoaded(comics):
-                self?.stateDataLoaded(comics: comics)
+                stateNone()
+            case let .cacheLoaded(comics):
+                stateCacheLoaded(comics: comics)
+            case let .favoriteRemoved(comic):
+                stateFavoriteRemoved(comic: comic)
             }
         }.store(in: &binding)
     }
@@ -72,9 +75,25 @@ private extension FavoriteListVC {
 
     func stateNone() {}
 
-    func stateDataLoaded(comics: [Comic]) {
-        vo.reloadUI(comics: comics, dataSource: dataSource)
-        showEmptyUI(isEmpty: comics.isEmpty)
+    func stateCacheLoaded(comics: [Comic]) {
+        var snapshot = FavoriteListModels.Snapshot()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(comics, toSection: .main)
+
+        dataSource.apply(snapshot) { [weak self] in
+            guard let self else { return }
+            contentUnavailableConfiguration = comics.isEmpty ? Self.makeEmpty() : nil
+        }
+    }
+
+    func stateFavoriteRemoved(comic: Comic) {
+        var snapshot = dataSource.snapshot()
+        snapshot.deleteItems([comic])
+
+        dataSource.apply(snapshot) { [weak self] in
+            guard let self else { return }
+            contentUnavailableConfiguration = snapshot.itemIdentifiers.isEmpty ? Self.makeEmpty() : nil
+        }
     }
 
     // MARK: - Make Something
@@ -86,13 +105,13 @@ private extension FavoriteListVC {
         config.leadingSwipeActionsConfigurationProvider = { [weak self] indexPath in
             guard let self else { return nil }
 
-            return makeSwipeActionsForIndexPath(indexPath)
+            return makeRemoveAction(indexPath: indexPath)
         }
 
         config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
             guard let self else { return nil }
 
-            return makeSwipeActionsForIndexPath(indexPath)
+            return makeRemoveAction(indexPath: indexPath)
         }
 
         return UICollectionViewCompositionalLayout.list(using: config)
@@ -114,7 +133,7 @@ private extension FavoriteListVC {
         }
     }
 
-    func makeSwipeActionsForIndexPath(_ indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    func makeRemoveAction(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let comic = dataSource.itemIdentifier(for: indexPath) else {
             return nil
         }

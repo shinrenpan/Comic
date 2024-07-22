@@ -9,14 +9,18 @@ import UIKit
 @main
 class AppDelegate: UIResponder {
     var window: UIWindow?
+
+    override init() {
+        super.init()
+        setupBinding()
+        setupAppearance()
+    }
 }
 
 // MARK: - UIApplicationDelegate
 
 extension AppDelegate: UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        setupAppearance()
-
         let bounds = UIScreen.main.bounds
         let window = UIWindow(frame: bounds)
         window.backgroundColor = .white
@@ -30,8 +34,22 @@ extension AppDelegate: UIApplicationDelegate {
 
 // MARK: - Private
 
-extension AppDelegate {
+private extension AppDelegate {
     // MARK: Setup Something
+
+    func setupBinding() {
+        NotificationCenter.default.addObserver(forName: .showLoading, object: nil, queue: .main) { [weak self] notify in
+            LoadingView.hide()
+
+            guard let self else { return }
+
+            guard let loadingView = notify.object as? LoadingView else {
+                return
+            }
+
+            showLoadingView(view: loadingView)
+        }
+    }
 
     func setupAppearance() {
         let navAppearance = UINavigationBarAppearance()
@@ -45,6 +63,22 @@ extension AppDelegate {
         barAppearance.configureWithDefaultBackground()
         UITabBar.appearance().standardAppearance = barAppearance
         UITabBar.appearance().scrollEdgeAppearance = barAppearance.copy()
+    }
+
+    // MARK: - Show Something
+
+    func showLoadingView(view: LoadingView) {
+        guard let window else { return }
+
+        view.translatesAutoresizingMaskIntoConstraints = false
+        window.addSubview(view)
+
+        NSLayoutConstraint.activate([
+            view.topAnchor.constraint(equalTo: window.topAnchor),
+            view.leadingAnchor.constraint(equalTo: window.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: window.trailingAnchor),
+            view.bottomAnchor.constraint(equalTo: window.bottomAnchor),
+        ])
     }
 
     // MARK: - Make Something

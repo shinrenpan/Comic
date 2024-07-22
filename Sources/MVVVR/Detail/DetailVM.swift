@@ -16,7 +16,7 @@ final class DetailVM {
 
     init(comic: Comic) {
         self.model = .init(comic: comic)
-        self.parser = .init(parserConfiguration: model.parserSetting)
+        self.parser = .init(parserConfiguration: .detail(comic: comic))
     }
 }
 
@@ -25,10 +25,12 @@ final class DetailVM {
 extension DetailVM {
     func doAction(_ action: DetailModels.Action) {
         switch action {
-        case .loadData:
-            actionLoadData()
-        case .updateFavorite:
-            actionUpdateFavorite()
+        case .loadCache:
+            actionLoadCache()
+        case .loadRemote:
+            actionLoadRemote()
+        case .tapFavorite:
+            actionTapFavorite()
         }
     }
 }
@@ -38,29 +40,49 @@ extension DetailVM {
 private extension DetailVM {
     // MARK: Do Action
 
-    func actionLoadData() {
+    func actionLoadCache() {
+        // comic.episodes 無排序, 需要先排序
+        let episodes = model.comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
+
+        let displayEpisodes: [DetailModels.DisplayEpisode] = episodes.compactMap {
+            let selected = model.comic.watchedId == $0.id
+            return .init(data: $0, selected: selected)
+        }
+
+        state = .cacheLoaded(episodes: displayEpisodes)
+    }
+
+    func actionLoadRemote() {
         Task {
             do {
                 let result = try await parser.start()
-                await handleLoadData(result)
-                state = .dataLoaded
+                await handleLoadRemote(result: result)
+                // comic.episodes 無排序, 需要先排序
+                let episodes = model.comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
+
+                let displayEpisodes: [DetailModels.DisplayEpisode] = episodes.compactMap {
+                    let selected = model.comic.watchedId == $0.id
+                    return .init(data: $0, selected: selected)
+                }
+
+                state = .remoteLoaded(episodes: displayEpisodes)
             }
             catch {
-                state = .dataLoaded
+                state = .remoteLoaded(episodes: [])
             }
         }
     }
 
-    func actionUpdateFavorite() {
+    func actionTapFavorite() {
         Task {
             model.comic.favorited.toggle()
-            state = .dataLoaded
+            state = .favoriteUpdated
         }
     }
 
     // MARK: - Handle Action
 
-    func handleLoadData(_ result: Any) async {
+    func handleLoadRemote(result: Any) async {
         let data = AnyCodable(result)
         model.comic.detail?.author = data["author"].string ?? ""
         model.comic.detail?.desc = data["desc"].string ?? ""
@@ -84,7 +106,5 @@ private extension DetailVM {
         }
 
         await DBWorker.shared.updateComicEpisodes(model.comic, episodes: episodes)
-
-        model.reloadEpisodes()
     }
 }

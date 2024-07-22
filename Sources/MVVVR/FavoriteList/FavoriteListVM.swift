@@ -33,12 +33,12 @@ private extension FavoriteListVM {
     func actionLoadCache() {
         Task {
             let comics = await DBWorker.shared.getComicFavoriteList()
-            state = .dataLoaded(comics: comics)
+            state = .cacheLoaded(comics: comics)
         }
     }
 
     func actionRemoveFavorite(_ comic: Comic) {
         comic.favorited = false
-        actionLoadCache()
+        state = .favoriteRemoved(comic: comic)
     }
 }

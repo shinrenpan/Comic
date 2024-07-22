@@ -33,13 +33,14 @@ private extension EpisodeListVM {
     // MARK: Do Action
 
     func actionLoadData() {
+        // comic.episodes 無排序, 需要先排序
         let episodes = model.comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
 
-        let response = EpisodeListModels.State.DataLoadedResponse(
-            episodes: episodes,
-            watchId: model.comic.watchedId
-        )
+        let displayEpisodes: [EpisodeListModels.DisplayEpisode] = episodes.compactMap {
+            let selected = model.comic.watchedId == $0.id
+            return .init(data: $0, selected: selected)
+        }
 
-        state = .dataLoaded(response: response)
+        state = .dataLoaded(episodes: displayEpisodes)
     }
 }

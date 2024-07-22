@@ -6,7 +6,16 @@
 
 import UIKit
 
-enum EpisodeListModels {}
+enum EpisodeListModels {
+    typealias DataSource = UICollectionViewDiffableDataSource<Section, DisplayEpisode>
+    typealias Snapshot = NSDiffableDataSourceSnapshot<Section, DisplayEpisode>
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, DisplayEpisode>
+
+    /// Delegate for handling selected episode
+    protocol SelectedDelegate: UIViewController {
+        func episodeList(list: EpisodeListVC, selected episode: Comic.Episode)
+    }
+}
 
 // MARK: - Action
 
@@ -21,31 +30,25 @@ extension EpisodeListModels {
 extension EpisodeListModels {
     enum State {
         case none
-
-        /// DataLoaded Response
-        struct DataLoadedResponse {
-            let episodes: [Comic.Episode]
-            let watchId: String?
-        }
-
-        case dataLoaded(response: DataLoadedResponse)
+        case dataLoaded(episodes: [DisplayEpisode])
     }
 }
 
 // MARK: - Others
 
 extension EpisodeListModels {
-    typealias DataSource = UICollectionViewDiffableDataSource<Section, Comic.Episode>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Section, Comic.Episode>
-    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic.Episode>
-
-    /// Delegate for handling selected episode
-    protocol SelectedDelegate: UIViewController {
-        func list(_ list: EpisodeListVC, selected episode: Comic.Episode)
-    }
-
     enum Section {
         case main
+    }
+
+    final class DisplayEpisode: NSObject {
+        let data: Comic.Episode
+        let selected: Bool
+
+        init(data: Comic.Episode, selected: Bool) {
+            self.data = data
+            self.selected = selected
+        }
     }
 }
 

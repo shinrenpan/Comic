@@ -18,29 +18,6 @@ final class HistoryListVO {
     }
 }
 
-// MARK: - Public
-
-extension HistoryListVO {
-    func reloadUI(comics: [Comic], dataSource: HistoryListModels.DataSource) {
-        var snapshot = HistoryListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
-        dataSource.apply(snapshot)
-    }
-
-    func reloadItem(_ item: Comic, dataSource: HistoryListModels.DataSource) {
-        var snapshot = dataSource.snapshot()
-        snapshot.reloadItems([item])
-        dataSource.apply(snapshot)
-    }
-
-    func deleteItem(_ item: Comic, dataSource: HistoryListModels.DataSource) {
-        var snapshot = dataSource.snapshot()
-        snapshot.deleteItems([item])
-        dataSource.apply(snapshot)
-    }
-}
-
 // MARK: - Private
 
 private extension HistoryListVO {

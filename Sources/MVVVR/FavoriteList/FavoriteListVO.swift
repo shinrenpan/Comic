@@ -18,17 +18,6 @@ final class FavoriteListVO {
     }
 }
 
-// MARK: - Public
-
-extension FavoriteListVO {
-    func reloadUI(comics: [Comic], dataSource: FavoriteListModels.DataSource) {
-        var snapshot = FavoriteListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
-        dataSource.apply(snapshot)
-    }
-}
-
 // MARK: - Private
 
 private extension FavoriteListVO {

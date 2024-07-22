@@ -19,19 +19,6 @@ final class SettingVO {
     }
 }
 
-// MARK: - Public
-
-extension SettingVO {
-    func reloadUI(items: [SettingModels.Item], dataSource: SettingModels.DataSource) {
-        var snapshot = SettingModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(items, toSection: .main)
-        snapshot.reloadSections([.main])
-
-        dataSource.apply(snapshot)
-    }
-}
-
 // MARK: - Private
 
 private extension SettingVO {

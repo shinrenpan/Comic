@@ -15,26 +15,15 @@ final class DetailVO {
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         .setup(\.backgroundColor, value: .white)
 
-    let list = UITableView(frame: .zero, style: .plain)
+    let list = UICollectionView(frame: .zero, collectionViewLayout: makeListLayout())
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
+
+    let favoriteItem = UIBarButtonItem()
+        .setup(\.image, value: .init(systemName: "star"))
 
     init() {
         setupSelf()
         addViews()
-    }
-}
-
-// MARK: - Public
-
-extension DetailVO {
-    func reloadUI(model: DetailModels.DisplayModel) {
-        header.reloadUI(comic: model.comic)
-        list.refreshControl?.endRefreshing()
-        list.reloadData()
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            self.updateWatchedUI(model: model)
-        }
     }
 }
 
@@ -44,7 +33,6 @@ private extension DetailVO {
     // MARK: Setup Something
 
     func setupSelf() {
-        list.registerCell(UITableViewCell.self)
         list.refreshControl = .init(frame: .zero)
     }
 
@@ -66,18 +54,11 @@ private extension DetailVO {
         ])
     }
 
-    // MARK: - Update Something
+    // MARK: - Make Something
 
-    func updateWatchedUI(model: DetailModels.DisplayModel) {
-        guard let watchedId = model.comic.watchedId else {
-            return
-        }
+    static func makeListLayout() -> UICollectionViewCompositionalLayout {
+        let config = UICollectionLayoutListConfiguration(appearance: .plain)
 
-        guard let row = model.episodes.firstIndex(where: { $0.id == watchedId }) else {
-            return
-        }
-
-        let indexPath = IndexPath(row: row, section: 0)
-        list.scrollToRow(at: indexPath, at: .middle, animated: true)
+        return UICollectionViewCompositionalLayout.list(using: config)
     }
 }

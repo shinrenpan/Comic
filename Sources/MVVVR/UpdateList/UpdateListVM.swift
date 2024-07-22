@@ -22,12 +22,14 @@ extension UpdateListVM {
         switch action {
         case .loadCache:
             actionLoadCache()
-        case .loadData:
-            actionLoadData()
+        case .loadRemote:
+            actionLoadRemote()
         case let .localSearch(keywords):
-            actionSearch(keywords)
-        case let .updateFavorite(comic):
-            actionUpdateFavorite(comic)
+            actionSearch(keywords: keywords)
+        case let .addFavorite(comic):
+            actionAddFavorite(comic: comic)
+        case let .removeFavorite(comic):
+            actionRemoveFavorite(comic: comic)
         }
     }
 }
@@ -40,33 +42,40 @@ private extension UpdateListVM {
     func actionLoadCache() {
         Task {
             let comics = await DBWorker.shared.getComicList()
-            state = .dataLoaded(comics: comics)
+            state = .cacheLoaded(comics: comics)
         }
     }
 
-    func actionLoadData() {
+    func actionLoadRemote() {
         Task {
             do {
                 let result = try await parser.start()
                 let array = AnyCodable(result).anyArray ?? []
                 await DBWorker.shared.insertOrUpdateComics(array)
-                actionLoadCache()
+                let comics = await DBWorker.shared.getComicList()
+                state = .remoteLoaded(comics: comics)
             }
             catch {
-                actionLoadCache()
+                let comics = await DBWorker.shared.getComicList()
+                state = .remoteLoaded(comics: comics)
             }
         }
     }
 
-    func actionSearch(_ keywords: String) {
+    func actionSearch(keywords: String) {
         Task {
             let comics = await DBWorker.shared.getComicListByKeywords(keywords)
-            state = .dataLoaded(comics: comics)
+            state = .searchResult(comics: comics)
         }
     }
 
-    func actionUpdateFavorite(_ comic: Comic) {
-        comic.favorited.toggle()
-        state = .dataUpdated(comic: comic)
+    func actionAddFavorite(comic: Comic) {
+        comic.favorited = true
+        state = .favoriteAdded(comic: comic)
+    }
+
+    func actionRemoveFavorite(comic: Comic) {
+        comic.favorited = false
+        state = .favoriteRemoved(comic: comic)
     }
 }
