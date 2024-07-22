@@ -15,6 +15,10 @@ final class UpdateListVO {
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         .setup(\.keyboardDismissMode, value: .onDrag)
 
+    let searchItem = UIBarButtonItem()
+        .setup(\.title, value: "線上查詢")
+        .setup(\.isEnabled, value: false)
+
     init() {
         list.refreshControl = .init(frame: .zero)
         addViews()

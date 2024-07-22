@@ -37,6 +37,7 @@ private extension UpdateListVC {
     func setupSelf() {
         view.backgroundColor = vo.mainView.backgroundColor
         navigationItem.title = "更新列表"
+        navigationItem.rightBarButtonItem = vo.searchItem
 
         let searchVC = UISearchController()
         searchVC.searchResultsUpdater = self
