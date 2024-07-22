@@ -39,7 +39,7 @@ private extension LoadingView {
     // MARK: Setup Something
 
     func setupSelf() {
-        backgroundColor = .black.withAlphaComponent(0.2)
+        backgroundColor = .black.withAlphaComponent(0.5)
     }
 
     func setupBinding() {
