@@ -12,6 +12,7 @@ final class DetailVC: UIViewController {
     let vm: DetailVM
     let router = DetailRouter()
     var binding: Set<AnyCancellable> = .init()
+    lazy var dataSource = makeDataSource()
     var firstInit = true
 
     init(comic: Comic) {
@@ -31,9 +32,10 @@ final class DetailVC: UIViewController {
         setupVO()
     }
 
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        stateDataLoaded()
+    override func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
+        stateFavoriteUpdated()
+        vm.doAction(.loadCache)
     }
 }
 
@@ -45,18 +47,24 @@ private extension DetailVC {
     func setupSelf() {
         view.backgroundColor = vo.mainView.backgroundColor
         navigationItem.title = "詳細"
+        navigationItem.rightBarButtonItem = vo.favoriteItem
         router.vc = self
     }
 
     func setupBinding() {
         vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            if self?.viewIfLoaded?.window == nil { return }
+            guard let self else { return }
+            if viewIfLoaded?.window == nil { return }
 
             switch state {
             case .none:
-                self?.stateNone()
-            case .dataLoaded:
-                self?.stateDataLoaded()
+                stateNone()
+            case let .cacheLoaded(episodes):
+                stateCacheLoaded(episodes: episodes)
+            case let .remoteLoaded(episodes):
+                stateRemoteLoaded(episodes: episodes)
+            case .favoriteUpdated:
+                stateFavoriteUpdated()
             }
         }.store(in: &binding)
     }
@@ -71,82 +79,122 @@ private extension DetailVC {
             vo.mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
 
-        vo.list.dataSource = self
         vo.list.delegate = self
         vo.list.refreshControl?.addAction(makeReloadAction(), for: .valueChanged)
+
+        vo.favoriteItem.primaryAction = .init { [weak self] _ in
+            guard let self else { return }
+            vm.doAction(.tapFavorite)
+        }
     }
 
     // MARK: - Handle State
 
     func stateNone() {}
 
-    func stateDataLoaded() {
-        navigationItem.rightBarButtonItem = makeFavoriteItem()
-        contentUnavailableConfiguration = nil
-        vo.reloadUI(model: vm.model)
+    func stateCacheLoaded(episodes: [DetailModels.DisplayEpisode]) {
+        vo.header.reloadUI(comic: vm.model.comic)
 
-        if firstInit {
-            firstInit = false
-            showLoadingUI()
-            vm.doAction(.loadData)
-        }
-        else {
-            if vm.model.episodes.isEmpty {
-                showErrorUI(reload: makeReloadAction())
+        var snapshot = DetailModels.Snapshot()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(episodes, toSection: .main)
+
+        dataSource.apply(snapshot) { [weak self] in
+            guard let self else { return }
+
+            if firstInit {
+                firstInit = false
+                LoadingView.show()
+                vm.doAction(.loadRemote)
+            }
+            else {
+                updateWatchedUI()
             }
         }
     }
 
-    // MARK: - Make Something
+    func stateRemoteLoaded(episodes: [DetailModels.DisplayEpisode]) {
+        LoadingView.hide()
 
-    func makeFavoriteItem() -> UIBarButtonItem {
+        vo.header.reloadUI(comic: vm.model.comic)
+
+        var snapshot = DetailModels.Snapshot()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(episodes, toSection: .main)
+
+        dataSource.apply(snapshot) { [weak self] in
+            guard let self else { return }
+
+            if episodes.isEmpty {
+                var content = Self.makeError()
+                content.buttonProperties.primaryAction = makeReloadAction()
+                contentUnavailableConfiguration = content
+            }
+            else {
+                contentUnavailableConfiguration = nil
+                updateWatchedUI()
+            }
+        }
+    }
+
+    func stateFavoriteUpdated() {
         let imgNamed = vm.model.comic.favorited ? "star.fill" : "star"
         let image = UIImage(systemName: imgNamed)
+        vo.favoriteItem.image = image
+    }
 
-        let action = UIAction(image: image) { [weak self] _ in
-            guard let self else { return }
-            vm.doAction(.updateFavorite)
+    func makeCell() -> DetailModels.CellRegistration {
+        .init { cell, _, item in
+            var config = UIListContentConfiguration.cell()
+            config.text = item.data.title
+            cell.contentConfiguration = config
+            cell.accessories = item.selected ? [.checkmark()] : []
         }
+    }
 
-        return .init(primaryAction: action)
+    func makeDataSource() -> DetailModels.DataSource {
+        let cell = makeCell()
+
+        return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
+            collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: itemIdentifier)
+        }
     }
 
     func makeReloadAction() -> UIAction {
         .init { [weak self] _ in
             guard let self else { return }
-            showLoadingUI()
-            vm.doAction(.loadData)
+            navigationItem.searchController?.searchBar.text = nil
+            navigationItem.searchController?.isActive = false
+            vo.list.panGestureRecognizer.isEnabled = false // 停止下拉更新
+            vo.list.refreshControl?.endRefreshing()
+            LoadingView.show()
+            vm.doAction(.loadRemote)
+            vo.list.panGestureRecognizer.isEnabled = true
         }
     }
-}
 
-// MARK: - UITableViewDataSource
+    // MARK: - Update Something
 
-extension DetailVC: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        vm.model.episodes.count
-    }
+    func updateWatchedUI() {
+        let items = dataSource.snapshot().itemIdentifiers
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.reuseCell(UITableViewCell.self, for: indexPath)
-        let episode = vm.model.episodes[indexPath.row]
-        let watched = vm.model.comic.watchedId == episode.id
+        guard let row = items.firstIndex(where: { $0.selected }) else {
+            return
+        }
 
-        var config = UIListContentConfiguration.cell()
-        config.text = episode.title
-
-        cell.contentConfiguration = config
-        cell.accessoryType = watched ? .checkmark : .none
-
-        return cell
+        let indexPath = IndexPath(item: row, section: 0)
+        vo.list.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
     }
 }
 
-// MARK: - UITableViewDelegate
+// MARK: - UICollectionViewDelegate
 
-extension DetailVC: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let episode = vm.model.episodes[indexPath.row]
-        router.toReader(comic: vm.model.comic, episode: episode)
+extension DetailVC: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let episode = dataSource.itemIdentifier(for: indexPath) else {
+            return
+        }
+
+        router.toReader(comic: vm.model.comic, episode: episode.data)
     }
 }
