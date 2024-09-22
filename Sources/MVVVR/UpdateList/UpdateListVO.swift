@@ -13,6 +13,7 @@ final class UpdateListVO {
 
     let list = UICollectionView(frame: .zero, collectionViewLayout: .init())
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
+        .setup(\.refreshControl, value: .init(frame: .zero))
         .setup(\.keyboardDismissMode, value: .onDrag)
 
     let searchItem = UIBarButtonItem()
@@ -20,7 +21,6 @@ final class UpdateListVO {
         .setup(\.isEnabled, value: false)
 
     init() {
-        list.refreshControl = .init(frame: .zero)
         addViews()
     }
 }

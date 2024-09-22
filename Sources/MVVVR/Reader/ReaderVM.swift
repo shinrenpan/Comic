@@ -45,7 +45,7 @@ private extension ReaderVM {
     func actionLoadData() {
         Task {
             do {
-                let result = try await parser.start()
+                let result = try await parser.result()
                 try await handleLoadData(result)
                 state = .dataLoaded
             }
