@@ -8,19 +8,18 @@ import Combine
 import UIKit
 
 final class FavoriteListVM {
-    @Published var state = FavoriteListModels.State.none
-    let model = FavoriteListModels.DisplayModel()
+    @Published var state = FavoriteListModel.State.none
 }
 
 // MARK: - Public
 
 extension FavoriteListVM {
-    func doAction(_ action: FavoriteListModels.Action) {
+    func doAction(_ action: FavoriteListModel.Action) {
         switch action {
         case .loadCache:
             actionLoadCache()
-        case let .removeFavorite(comic):
-            actionRemoveFavorite(comic)
+        case let .removeFavorite(request):
+            actionRemoveFavorite(request: request)
         }
     }
 }
@@ -33,12 +32,13 @@ private extension FavoriteListVM {
     func actionLoadCache() {
         Task {
             let comics = await DBWorker.shared.getComicFavoriteList()
-            state = .cacheLoaded(comics: comics)
+            state = .cacheLoaded(response: .init(comics: comics))
         }
     }
 
-    func actionRemoveFavorite(_ comic: Comic) {
+    func actionRemoveFavorite(request: FavoriteListModel.RemoveFavoriteRequest) {
+        let comic = request.comic
         comic.favorited = false
-        state = .favoriteRemoved(comic: comic)
+        state = .favoriteRemoved(response: .init(comic: comic))
     }
 }

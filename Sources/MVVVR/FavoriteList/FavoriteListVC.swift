@@ -5,7 +5,6 @@
 //
 
 import Combine
-import SwiftData
 import SwiftUI
 import UIKit
 
@@ -48,10 +47,10 @@ private extension FavoriteListVC {
             switch state {
             case .none:
                 stateNone()
-            case let .cacheLoaded(comics):
-                stateCacheLoaded(comics: comics)
-            case let .favoriteRemoved(comic):
-                stateFavoriteRemoved(comic: comic)
+            case let .cacheLoaded(response):
+                stateCacheLoaded(response: response)
+            case let .favoriteRemoved(response):
+                stateFavoriteRemoved(response: response)
             }
         }.store(in: &binding)
     }
@@ -67,7 +66,6 @@ private extension FavoriteListVC {
         ])
 
         vo.list.setCollectionViewLayout(makeListLayout(), animated: false)
-        vo.list.dataSource = dataSource
         vo.list.delegate = self
     }
 
@@ -75,10 +73,11 @@ private extension FavoriteListVC {
 
     func stateNone() {}
 
-    func stateCacheLoaded(comics: [Comic]) {
-        var snapshot = FavoriteListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
+    func stateCacheLoaded(response: FavoriteListModel.CacheLoadedResponse) {
+        let comics = response.comics
+        var snapshot = FavoriteListModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(comics, toSection: 0)
 
         dataSource.apply(snapshot) { [weak self] in
             guard let self else { return }
@@ -86,7 +85,8 @@ private extension FavoriteListVC {
         }
     }
 
-    func stateFavoriteRemoved(comic: Comic) {
+    func stateFavoriteRemoved(response: FavoriteListModel.FavoriteRemovedResponse) {
+        let comic = response.comic
         var snapshot = dataSource.snapshot()
         snapshot.deleteItems([comic])
 
@@ -101,50 +101,49 @@ private extension FavoriteListVC {
     func makeListLayout() -> UICollectionViewCompositionalLayout {
         var config = UICollectionLayoutListConfiguration(appearance: .plain)
         config.separatorConfiguration.bottomSeparatorInsets = .init(top: 0, leading: 86, bottom: 0, trailing: 0)
-
-        config.leadingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            guard let self else { return nil }
-
-            return makeRemoveAction(indexPath: indexPath)
-        }
-
-        config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            guard let self else { return nil }
-
-            return makeRemoveAction(indexPath: indexPath)
-        }
+        config.leadingSwipeActionsConfigurationProvider = makeSwipeProvider()
+        config.trailingSwipeActionsConfigurationProvider = makeSwipeProvider()
 
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
-    func makeCell() -> FavoriteListModels.CellRegistration {
-        .init { cell, _, item in
+    func makeSwipeProvider() -> UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider {
+        { [weak self] indexPath in
+            guard let self else { return nil }
+
+            return makeSwipeAction(indexPath: indexPath)
+        }
+    }
+    
+    func makeSwipeAction(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard let comic = dataSource.itemIdentifier(for: indexPath) else {
+            return nil
+        }
+
+        return .init(actions: [makeRemoveFavoriteAction(comic: comic)])
+    }
+    
+    func makeRemoveFavoriteAction(comic: Comic) -> UIContextualAction {
+        .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
+            guard let self else { return }
+            vm.doAction(.removeFavorite(request: .init(comic: comic)))
+        }.setup(\.backgroundColor, value: .orange)
+    }
+    
+    func makeCell() -> FavoriteListModel.CellRegistration {
+        .init { cell, _, comic in
             cell.contentConfiguration = UIHostingConfiguration {
-                CellContentView(comic: item, cellType: .favorite)
+                CellContentView(comic: comic, cellType: .favorite)
             }
         }
     }
 
-    func makeDataSource() -> FavoriteListModels.DataSource {
+    func makeDataSource() -> FavoriteListModel.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
             collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: itemIdentifier)
         }
-    }
-
-    func makeRemoveAction(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let comic = dataSource.itemIdentifier(for: indexPath) else {
-            return nil
-        }
-
-        let action = UIContextualAction(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
-            self?.vm.doAction(.removeFavorite(comic: comic))
-        }
-
-        action.backgroundColor = .orange
-
-        return .init(actions: [action])
     }
 }
 
