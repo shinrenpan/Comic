@@ -19,6 +19,18 @@ final class EpisodeListVO {
     }
 }
 
+// MARK: - Public
+
+extension EpisodeListVO {
+    func scrollListToWatched(indexPath: IndexPath?) {
+        guard let indexPath else {
+            return
+        }
+        
+        list.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
+    }
+}
+
 // MARK: - Private
 
 private extension EpisodeListVO {

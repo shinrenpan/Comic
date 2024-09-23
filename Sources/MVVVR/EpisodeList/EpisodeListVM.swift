@@ -7,19 +7,19 @@
 import Combine
 import UIKit
 
-final class EpisodeListVM {
-    @Published var state = EpisodeListModels.State.none
-    let model: EpisodeListModels.DisplayModel
+final class EpisodeListVM: ObservableObject {
+    @Published var state = EpisodeListModel.State.none
+    let comic: Comic
 
     init(comic: Comic) {
-        self.model = .init(comic: comic)
+        self.comic = comic
     }
 }
 
 // MARK: - Public
 
 extension EpisodeListVM {
-    func doAction(_ action: EpisodeListModels.Action) {
+    func doAction(_ action: EpisodeListModel.Action) {
         switch action {
         case .loadData:
             actionLoadData()
@@ -34,13 +34,13 @@ private extension EpisodeListVM {
 
     func actionLoadData() {
         // comic.episodes 無排序, 需要先排序
-        let episodes = model.comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
+        let episodes = comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
 
-        let displayEpisodes: [EpisodeListModels.DisplayEpisode] = episodes.compactMap {
-            let selected = model.comic.watchedId == $0.id
+        let displayEpisodes: [EpisodeListModel.Episode] = episodes.compactMap {
+            let selected = comic.watchedId == $0.id
             return .init(data: $0, selected: selected)
         }
 
-        state = .dataLoaded(episodes: displayEpisodes)
+        state = .dataLoaded(response: .init(episodes: displayEpisodes))
     }
 }

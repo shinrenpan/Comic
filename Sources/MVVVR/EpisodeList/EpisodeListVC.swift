@@ -12,7 +12,7 @@ final class EpisodeListVC: UIViewController {
     let vm: EpisodeListVM
     let router = EpisodeListRouter()
     var binding: Set<AnyCancellable> = .init()
-    weak var delegate: EpisodeListModels.SelectedDelegate?
+    weak var delegate: EpisodeListModel.SelectedDelegate?
     lazy var dataSource = makeDataSource()
 
     init(comic: Comic) {
@@ -30,6 +30,10 @@ final class EpisodeListVC: UIViewController {
         setupSelf()
         setupBinding()
         setupVO()
+    }
+    
+    override func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
         vm.doAction(.loadData)
     }
 }
@@ -53,8 +57,8 @@ private extension EpisodeListVC {
             switch state {
             case .none:
                 stateNone()
-            case let .dataLoaded(episodes):
-                stateDataLoaded(episodes: episodes)
+            case let .dataLoaded(response):
+                stateDataLoaded(response: response)
             }
         }.store(in: &binding)
     }
@@ -69,7 +73,6 @@ private extension EpisodeListVC {
             vo.mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
 
-        vo.list.dataSource = dataSource
         vo.list.delegate = self
     }
 
@@ -77,40 +80,50 @@ private extension EpisodeListVC {
 
     func stateNone() {}
 
-    func stateDataLoaded(episodes: [EpisodeListModels.DisplayEpisode]) {
-        var snapshot = EpisodeListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(episodes, toSection: .main)
-        snapshot.reloadSections([.main])
+    func stateDataLoaded(response: EpisodeListModel.DataLoadedResponse) {
+        let episodes = response.episodes
+        var snapshot = EpisodeListModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(episodes, toSection: 0)
+        snapshot.reloadSections([0])
 
         dataSource.apply(snapshot) { [weak self] in
             guard let self else { return }
 
             contentUnavailableConfiguration = episodes.isEmpty ? Self.makeEmpty() : nil
-
-            if let row = episodes.firstIndex(where: { $0.selected }) {
-                vo.list.scrollToItem(at: .init(row: row, section: 0), at: .centeredVertically, animated: false)
-            }
+            vo.scrollListToWatched(indexPath: getWatchedIndexPath())
         }
     }
 
     // MARK: - Make Something
 
-    func makeCell() -> EpisodeListModels.CellRegistration {
-        .init { cell, _, item in
+    func makeCell() -> EpisodeListModel.CellRegistration {
+        .init { cell, _, episode in
             var config = UIListContentConfiguration.cell()
-            config.text = item.data.title
+            config.text = episode.data.title
             cell.contentConfiguration = config
-            cell.accessories = item.selected ? [.checkmark()] : []
+            cell.accessories = episode.selected ? [.checkmark()] : []
         }
     }
 
-    func makeDataSource() -> EpisodeListModels.DataSource {
+    func makeDataSource() -> EpisodeListModel.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
             collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: itemIdentifier)
         }
+    }
+    
+    // MARK: - Get Something
+    
+    func getWatchedIndexPath() -> IndexPath? {
+        let items = dataSource.snapshot().itemIdentifiers
+
+        guard let index = items.firstIndex(where: { $0.selected }) else {
+            return nil
+        }
+
+        return .init(item: index, section: 0)
     }
 }
 
