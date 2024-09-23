@@ -7,7 +7,7 @@
 import Combine
 import UIKit
 
-final class FavoriteListVM {
+final class FavoriteListVM: ObservableObject {
     @Published var state = FavoriteListModel.State.none
 }
 

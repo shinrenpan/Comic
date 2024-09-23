@@ -12,9 +12,9 @@ final class DetailVC: UIViewController {
     let vm: DetailVM
     let router = DetailRouter()
     var binding: Set<AnyCancellable> = .init()
-    lazy var dataSource = makeDataSource()
     var firstInit = true
-
+    lazy var dataSource = makeDataSource()
+    
     init(comic: Comic) {
         self.vm = .init(comic: comic)
         super.init(nibName: nil, bundle: nil)
@@ -34,7 +34,6 @@ final class DetailVC: UIViewController {
 
     override func viewIsAppearing(_ animated: Bool) {
         super.viewIsAppearing(animated)
-        stateFavoriteUpdated()
         vm.doAction(.loadCache)
     }
 }
@@ -59,12 +58,12 @@ private extension DetailVC {
             switch state {
             case .none:
                 stateNone()
-            case let .cacheLoaded(episodes):
-                stateCacheLoaded(episodes: episodes)
-            case let .remoteLoaded(episodes):
-                stateRemoteLoaded(episodes: episodes)
-            case .favoriteUpdated:
-                stateFavoriteUpdated()
+            case let .cacheLoaded(response):
+                stateCacheLoaded(response: response)
+            case let .remoteLoaded(response):
+                stateRemoteLoaded(response: response)
+            case let .favoriteUpdated(response):
+                stateFavoriteUpdated(response: response)
             }
         }.store(in: &binding)
     }
@@ -92,67 +91,53 @@ private extension DetailVC {
 
     func stateNone() {}
 
-    func stateCacheLoaded(episodes: [DetailModels.DisplayEpisode]) {
-        vo.header.reloadUI(comic: vm.model.comic)
-
-        var snapshot = DetailModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(episodes, toSection: .main)
-
+    func stateCacheLoaded(response: DetailModel.CacheLoadedResponse) {
+        vo.reloadHeader(comic: response.comic)
+        vo.reloadFavoriteUI(comic: response.comic)
+        
+        let episodes = response.episodes
+        var snapshot = DetailModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(episodes, toSection: 0)
+        
         dataSource.apply(snapshot) { [weak self] in
             guard let self else { return }
-
-            if firstInit {
-                firstInit = false
-                LoadingView.show()
-                vm.doAction(.loadRemote)
-            }
-            else {
-                updateWatchedUI()
-            }
+            updateAfterCacheLoaded()
         }
     }
 
-    func stateRemoteLoaded(episodes: [DetailModels.DisplayEpisode]) {
+    func stateRemoteLoaded(response: DetailModel.RemoteLoadedResponse) {
         LoadingView.hide()
-
-        vo.header.reloadUI(comic: vm.model.comic)
-
-        var snapshot = DetailModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(episodes, toSection: .main)
+        vo.reloadHeader(comic: response.comic)
+        vo.reloadFavoriteUI(comic: response.comic)
+        
+        let episodes = response.episodes
+        var snapshot = DetailModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(episodes, toSection: 0)
 
         dataSource.apply(snapshot) { [weak self] in
             guard let self else { return }
-
-            if episodes.isEmpty {
-                var content = Self.makeError()
-                content.buttonProperties.primaryAction = makeReloadAction()
-                contentUnavailableConfiguration = content
-            }
-            else {
-                contentUnavailableConfiguration = nil
-                updateWatchedUI()
-            }
+            updateAfterRemoveLoaded(isEmpty: episodes.isEmpty)
         }
     }
 
-    func stateFavoriteUpdated() {
-        let imgNamed = vm.model.comic.favorited ? "star.fill" : "star"
-        let image = UIImage(systemName: imgNamed)
-        vo.favoriteItem.image = image
+    func stateFavoriteUpdated(response: DetailModel.FavoriteUpdatedResponse) {
+        vo.reloadFavoriteUI(comic: response.comic)
     }
 
-    func makeCell() -> DetailModels.CellRegistration {
-        .init { cell, _, item in
+    // MARK: - Make Something
+    
+    func makeCell() -> DetailModel.CellRegistration {
+        .init { cell, _, episode in
             var config = UIListContentConfiguration.cell()
-            config.text = item.data.title
+            config.text = episode.data.title
             cell.contentConfiguration = config
-            cell.accessories = item.selected ? [.checkmark()] : []
+            cell.accessories = episode.selected ? [.checkmark()] : []
         }
     }
 
-    func makeDataSource() -> DetailModels.DataSource {
+    func makeDataSource() -> DetailModel.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
@@ -175,15 +160,39 @@ private extension DetailVC {
 
     // MARK: - Update Something
 
-    func updateWatchedUI() {
+    func updateAfterCacheLoaded() {
+        if firstInit {
+            firstInit = false
+            LoadingView.show()
+            vm.doAction(.loadRemote)
+        }
+        else {
+            vo.scrollListToWatched(indexPath: getWatchedIndexPath())
+        }
+    }
+    
+    func updateAfterRemoveLoaded(isEmpty: Bool) {
+        if isEmpty {
+            var content = Self.makeError()
+            content.buttonProperties.primaryAction = makeReloadAction()
+            contentUnavailableConfiguration = content
+        }
+        else {
+            contentUnavailableConfiguration = nil
+            vo.scrollListToWatched(indexPath: getWatchedIndexPath())
+        }
+    }
+    
+    // MARK: - Get Something
+    
+    func getWatchedIndexPath() -> IndexPath? {
         let items = dataSource.snapshot().itemIdentifiers
 
-        guard let row = items.firstIndex(where: { $0.selected }) else {
-            return
+        guard let index = items.firstIndex(where: { $0.selected }) else {
+            return nil
         }
 
-        let indexPath = IndexPath(item: row, section: 0)
-        vo.list.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
+        return .init(item: index, section: 0)
     }
 }
 
@@ -195,6 +204,6 @@ extension DetailVC: UICollectionViewDelegate {
             return
         }
 
-        router.toReader(comic: vm.model.comic, episode: episode.data)
+        router.toReader(comic: vm.comic, episode: episode.data)
     }
 }

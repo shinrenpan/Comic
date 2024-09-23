@@ -9,13 +9,13 @@ import Combine
 import UIKit
 import WebParser
 
-final class DetailVM {
-    @Published var state = DetailModels.State.none
-    let model: DetailModels.DisplayModel
+final class DetailVM: ObservableObject {
+    @Published var state = DetailModel.State.none
+    let comic: Comic
     let parser: Parser
 
     init(comic: Comic) {
-        self.model = .init(comic: comic)
+        self.comic = comic
         self.parser = .init(parserConfiguration: .detail(comic: comic))
     }
 }
@@ -23,7 +23,7 @@ final class DetailVM {
 // MARK: - Public
 
 extension DetailVM {
-    func doAction(_ action: DetailModels.Action) {
+    func doAction(_ action: DetailModel.Action) {
         switch action {
         case .loadCache:
             actionLoadCache()
@@ -42,14 +42,15 @@ private extension DetailVM {
 
     func actionLoadCache() {
         // comic.episodes 無排序, 需要先排序
-        let episodes = model.comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
+        let episodes = comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
 
-        let displayEpisodes: [DetailModels.DisplayEpisode] = episodes.compactMap {
-            let selected = model.comic.watchedId == $0.id
+        let displayEpisodes: [DetailModel.Episode] = episodes.compactMap {
+            let selected = comic.watchedId == $0.id
             return .init(data: $0, selected: selected)
         }
 
-        state = .cacheLoaded(episodes: displayEpisodes)
+        let response = DetailModel.CacheLoadedResponse(comic: comic, episodes: displayEpisodes)
+        state = .cacheLoaded(response: response)
     }
 
     func actionLoadRemote() {
@@ -58,25 +59,27 @@ private extension DetailVM {
                 let result = try await parser.result()
                 await handleLoadRemote(result: result)
                 // comic.episodes 無排序, 需要先排序
-                let episodes = model.comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
+                let episodes = comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
 
-                let displayEpisodes: [DetailModels.DisplayEpisode] = episodes.compactMap {
-                    let selected = model.comic.watchedId == $0.id
+                let displayEpisodes: [DetailModel.Episode] = episodes.compactMap {
+                    let selected = comic.watchedId == $0.id
                     return .init(data: $0, selected: selected)
                 }
 
-                state = .remoteLoaded(episodes: displayEpisodes)
+                let response = DetailModel.RemoteLoadedResponse(comic: comic, episodes: displayEpisodes)
+                state = .remoteLoaded(response: response)
             }
             catch {
-                state = .remoteLoaded(episodes: [])
+                let response = DetailModel.RemoteLoadedResponse(comic: comic, episodes: [])
+                state = .remoteLoaded(response: response)
             }
         }
     }
 
     func actionTapFavorite() {
         Task {
-            model.comic.favorited.toggle()
-            state = .favoriteUpdated
+            comic.favorited.toggle()
+            state = .favoriteUpdated(response: .init(comic: comic))
         }
     }
 
@@ -84,8 +87,8 @@ private extension DetailVM {
 
     func handleLoadRemote(result: Any) async {
         let data = AnyCodable(result)
-        model.comic.detail?.author = data["author"].string ?? ""
-        model.comic.detail?.desc = data["desc"].string ?? ""
+        comic.detail?.author = data["author"].string ?? ""
+        comic.detail?.desc = data["desc"].string ?? ""
 
         let array = data["episodes"].anyArray ?? []
 
@@ -105,6 +108,6 @@ private extension DetailVM {
             return .init(id: id, index: index, title: title)
         }
 
-        await DBWorker.shared.updateComicEpisodes(model.comic, episodes: episodes)
+        await DBWorker.shared.updateComicEpisodes(comic, episodes: episodes)
     }
 }

@@ -7,7 +7,7 @@
 import Combine
 import UIKit
 
-final class HistoryListVM {
+final class HistoryListVM: ObservableObject {
     @Published var state = HistoryListModel.State.none
 }
 

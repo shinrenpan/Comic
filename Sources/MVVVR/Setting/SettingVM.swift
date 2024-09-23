@@ -8,7 +8,7 @@ import Combine
 import Kingfisher
 import UIKit
 
-final class SettingVM {
+final class SettingVM: ObservableObject {
     @Published var state = SettingModel.State.none
 }
 
