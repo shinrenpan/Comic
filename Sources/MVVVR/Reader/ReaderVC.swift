@@ -6,7 +6,6 @@
 
 import Combine
 import UIKit
-import Kingfisher
 
 final class ReaderVC: UIViewController {
     let vo = ReaderVO()
@@ -14,7 +13,7 @@ final class ReaderVC: UIViewController {
     let router = ReaderRouter()
     var binding: Set<AnyCancellable> = .init()
     var hideBar = false
-    var readDirection = ReaderModel.ReadDirection.vertical
+    var readDirection = ReaderModel.ReadDirection.horizontal
 
     init(comic: Comic, episode: Comic.Episode) {
         self.vm = .init(comic: comic, episode: episode)
