@@ -11,6 +11,15 @@ protocol ScrollToTopable: UIViewController {
 }
 
 final class TabBarController: UITabBarController {
+    init() {
+        super.init(nibName: nil, bundle: nil)
+        traitOverrides.horizontalSizeClass = .compact
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func tabBar(_ tabBar: UITabBar, didSelect item: UITabBarItem) {
         let sameTab = selectedViewController?.tabBarItem == item
 

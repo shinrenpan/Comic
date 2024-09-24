@@ -22,7 +22,7 @@ extension ParserConfiguration {
         )
     }
 
-    static func makeParseImages(comic: Comic, episode: Comic.Episode) -> Self {
+    static func images(comic: Comic, episode: Comic.Episode) -> Self {
         let uri = "https://tw.manhuagui.com/comic/\(comic.id)/\(episode.id).html"
         let urlComponents = URLComponents(string: uri)!
 

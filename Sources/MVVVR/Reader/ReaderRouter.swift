@@ -18,6 +18,7 @@ extension ReaderRouter {
         list.delegate = vc
 
         let to = UINavigationController(rootViewController: list)
+        
         if let sheet = to.sheetPresentationController {
             sheet.detents = [.medium()]
             sheet.prefersGrabberVisible = true
