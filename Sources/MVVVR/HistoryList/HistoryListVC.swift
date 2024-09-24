@@ -5,7 +5,6 @@
 //
 
 import Combine
-import SwiftData
 import SwiftUI
 import UIKit
 
@@ -48,14 +47,14 @@ private extension HistoryListVC {
             switch state {
             case .none:
                 stateNone()
-            case let .cacheLoaded(comics):
-                stateCacheLoaded(comics: comics)
-            case let .favoriteAdded(comic):
-                stateFavoriteAdded(comic: comic)
-            case let .favoriteRemoved(comic):
-                stateFavoriteRemoved(comic: comic)
-            case let .historyRemoved(comic):
-                stateHistoryRemoved(comic: comic)
+            case let .cacheLoaded(response):
+                stateCacheLoaded(response: response)
+            case let .favoriteAdded(response):
+                stateFavoriteAdded(response: response)
+            case let .favoriteRemoved(response):
+                stateFavoriteRemoved(response: response)
+            case let .historyRemoved(response):
+                stateHistoryRemoved(response: response)
             }
         }.store(in: &binding)
     }
@@ -78,10 +77,11 @@ private extension HistoryListVC {
 
     func stateNone() {}
 
-    func stateCacheLoaded(comics: [Comic]) {
-        var snapshot = HistoryListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
+    func stateCacheLoaded(response: HistoryListModel.CacheLoadedResponse) {
+        let comics = response.comics
+        var snapshot = HistoryListModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(comics, toSection: 0)
 
         dataSource.apply(snapshot) { [weak self] in
             guard let self else { return }
@@ -89,19 +89,22 @@ private extension HistoryListVC {
         }
     }
 
-    func stateFavoriteAdded(comic: Comic) {
+    func stateFavoriteAdded(response: HistoryListModel.FavoriteAddedResponse) {
+        let comic = response.comic
         var snapshot = dataSource.snapshot()
         snapshot.reloadItems([comic])
         dataSource.apply(snapshot)
     }
 
-    func stateFavoriteRemoved(comic: Comic) {
+    func stateFavoriteRemoved(response: HistoryListModel.FavoriteRemovedResponse) {
+        let comic = response.comic
         var snapshot = dataSource.snapshot()
         snapshot.reloadItems([comic])
         dataSource.apply(snapshot)
     }
 
-    func stateHistoryRemoved(comic: Comic) {
+    func stateHistoryRemoved(response: HistoryListModel.HistoryRemovedResponse) {
+        let comic = response.comic
         var snapshot = dataSource.snapshot()
         snapshot.deleteItems([comic])
 
@@ -116,79 +119,74 @@ private extension HistoryListVC {
     func makeListLayout() -> UICollectionViewCompositionalLayout {
         var config = UICollectionLayoutListConfiguration(appearance: .plain)
         config.separatorConfiguration.bottomSeparatorInsets = .init(top: 0, leading: 86, bottom: 0, trailing: 0)
-
-        config.leadingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            guard let self else { return nil }
-
-            return makeSwipeActions(indexPath: indexPath)
-        }
-
-        config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            guard let self else { return nil }
-
-            return makeSwipeActions(indexPath: indexPath)
-        }
+        config.leadingSwipeActionsConfigurationProvider = makeSwipeProvider()
+        config.trailingSwipeActionsConfigurationProvider = makeSwipeProvider()
 
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
-    func makeCell() -> HistoryListModels.CellRegistration {
-        .init { cell, _, item in
+    func makeSwipeProvider() -> UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider {
+        { [weak self] indexPath in
+            guard let self else { return nil }
+
+            return makeSwipeAction(indexPath: indexPath)
+        }
+    }
+    
+    func makeSwipeAction(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard let comic = dataSource.itemIdentifier(for: indexPath) else {
+            return nil
+        }
+
+        switch comic.favorited {
+        case true:
+            return .init(actions: [
+                makeRemoveHistoryAction(comic: comic),
+                makeRemoveFavoriteAction(comic: comic)
+            ])
+        case false:
+            return .init(actions: [
+                makeRemoveHistoryAction(comic: comic),
+                makeAddFavoriteAction(comic: comic)
+            ])
+        }
+    }
+    
+    func makeRemoveHistoryAction(comic: Comic) -> UIContextualAction {
+        .init(style: .normal, title: "移除紀錄") { [weak self] _, _, _ in
+            guard let self else { return }
+            vm.doAction(.removeHistory(request: .init(comic: comic)))
+        }.setup(\.backgroundColor, value: .red)
+    }
+    
+    func makeAddFavoriteAction(comic: Comic) -> UIContextualAction {
+        .init(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
+            guard let self else { return }
+            vm.doAction(.addFavorite(request: .init(comic: comic)))
+        }.setup(\.backgroundColor, value: .blue)
+    }
+    
+    func makeRemoveFavoriteAction(comic: Comic) -> UIContextualAction {
+        .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
+            guard let self else { return }
+            vm.doAction(.removeFavorite(request: .init(comic: comic)))
+        }.setup(\.backgroundColor, value: .orange)
+    }
+    
+    func makeCell() -> HistoryListModel.CellRegistration {
+        .init { cell, _, comic in
             cell.contentConfiguration = UIHostingConfiguration {
-                CellContentView(comic: item, cellType: .history)
+                CellContentView(comic: comic, cellType: .history)
             }
         }
     }
 
-    func makeDataSource() -> HistoryListModels.DataSource {
+    func makeDataSource() -> HistoryListModel.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
             collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: itemIdentifier)
         }
-    }
-
-    func makeSwipeActions(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let comic = dataSource.itemIdentifier(for: indexPath) else {
-            return nil
-        }
-
-        let result = UISwipeActionsConfiguration(actions: [
-            makeHistoryAction(comic: comic),
-            makeFavoriteAction(comic: comic),
-        ])
-
-        result.performsFirstActionWithFullSwipe = false
-
-        return result
-    }
-
-    func makeHistoryAction(comic: Comic) -> UIContextualAction {
-        let action = UIContextualAction(style: .normal, title: "移除紀錄") { [weak self] _, _, _ in
-            self?.vm.doAction(.removeHistory(comic: comic))
-        }
-
-        action.backgroundColor = .red
-
-        return action
-    }
-
-    func makeFavoriteAction(comic: Comic) -> UIContextualAction {
-        let favorited = comic.favorited
-
-        if favorited {
-            let action = UIContextualAction(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
-                self?.vm.doAction(.removeFavorite(comic: comic))
-            }.setup(\.backgroundColor, value: .orange)
-
-            return action
-        }
-
-        let action = UIContextualAction(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
-            self?.vm.doAction(.addFavorite(comic: comic))
-        }.setup(\.backgroundColor, value: .blue)
-
-        return action
     }
 }
 

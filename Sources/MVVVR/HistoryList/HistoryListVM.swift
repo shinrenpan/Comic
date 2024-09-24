@@ -7,24 +7,23 @@
 import Combine
 import UIKit
 
-final class HistoryListVM {
-    @Published var state = HistoryListModels.State.none
-    let model = HistoryListModels.DisplayModel()
+final class HistoryListVM: ObservableObject {
+    @Published var state = HistoryListModel.State.none
 }
 
 // MARK: - Public
 
 extension HistoryListVM {
-    func doAction(_ action: HistoryListModels.Action) {
+    func doAction(_ action: HistoryListModel.Action) {
         switch action {
         case .loadCache:
             actionLoadCache()
-        case let .addFavorite(comic):
-            actionAddFavorite(comic: comic)
-        case let .removeFavorite(comic):
-            actionRemoveFavorite(comic: comic)
-        case let .removeHistory(comic):
-            actionRemoveHistory(comic: comic)
+        case let .addFavorite(request):
+            actionAddFavorite(request: request)
+        case let .removeFavorite(request):
+            actionRemoveFavorite(request: request)
+        case let .removeHistory(request):
+            actionRemoveHistory(request: request)
         }
     }
 }
@@ -37,24 +36,27 @@ private extension HistoryListVM {
     func actionLoadCache() {
         Task {
             let comics = await DBWorker.shared.getComicHistoryList()
-            state = .cacheLoaded(comics: comics)
+            state = .cacheLoaded(response: .init(comics: comics))
         }
     }
 
-    func actionAddFavorite(comic: Comic) {
+    func actionAddFavorite(request: HistoryListModel.AddFavoriteRequest) {
+        let comic = request.comic
         comic.favorited = true
-        state = .favoriteAdded(comic: comic)
+        state = .favoriteAdded(response: .init(comic: comic))
     }
 
-    func actionRemoveFavorite(comic: Comic) {
+    func actionRemoveFavorite(request: HistoryListModel.RemoveFavoriteRequest) {
+        let comic = request.comic
         comic.favorited = false
-        state = .favoriteRemoved(comic: comic)
+        state = .favoriteRemoved(response: .init(comic: comic))
     }
 
-    func actionRemoveHistory(comic: Comic) {
+    func actionRemoveHistory(request: HistoryListModel.RemoveHistoryRequest) {
         Task {
+            let comic = request.comic
             await DBWorker.shared.removeComicHistory(comic)
-            state = .historyRemoved(comic: comic)
+            state = .historyRemoved(response: .init(comic: comic))
         }
     }
 }

@@ -13,8 +13,8 @@ final class UpdateListVC: UIViewController {
     let vm = UpdateListVM()
     let router = UpdateListRouter()
     var binding: Set<AnyCancellable> = .init()
-    lazy var dataSource = makeDataSource()
     var firstInit = true
+    lazy var dataSource = makeDataSource()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -57,16 +57,16 @@ private extension UpdateListVC {
             switch state {
             case .none:
                 stateNone()
-            case let .cacheLoaded(comics):
-                stateCacheLoaded(comics: comics)
-            case let .remoteLoaded(comics):
-                stateRemoteLoaded(comics: comics)
-            case let .searchResult(comics):
-                stateSearchResult(comics: comics)
-            case let .favoriteAdded(comic):
-                stateFavoriteAdded(comic: comic)
-            case let .favoriteRemoved(comic):
-                stateFavoriteRemoved(comic: comic)
+            case let .cacheLoaded(response):
+                stateCacheLoaded(response: response)
+            case let .remoteLoaded(response):
+                stateRemoteLoaded(response: response)
+            case let .localSearched(response):
+                stateLocalSearched(response: response)
+            case let .favoriteAdded(response):
+                stateFavoriteAdded(response: response)
+            case let .favoriteRemoved(response):
+                stateFavoriteRemoved(response: response)
             }
         }.store(in: &binding)
     }
@@ -83,7 +83,6 @@ private extension UpdateListVC {
 
         vo.list.refreshControl?.addAction(makeReloadAction(), for: .valueChanged)
         vo.list.setCollectionViewLayout(makeListLayout(), animated: false)
-        vo.list.dataSource = dataSource
         vo.list.delegate = self
     }
 
@@ -91,127 +90,149 @@ private extension UpdateListVC {
 
     func stateNone() {}
 
-    func stateCacheLoaded(comics: [Comic]) {
-        var snapshot = UpdateListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
+    func stateCacheLoaded(response: UpdateListModel.CacheLoadedResponse) {
+        let comics = response.comics
+        var snapshot = UpdateListModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(comics, toSection: 0)
 
         dataSource.apply(snapshot) { [weak self] in
             guard let self else { return }
-            contentUnavailableConfiguration = nil
-
-            if firstInit {
-                LoadingView.show()
-                firstInit = false
-                vm.doAction(.loadRemote)
-            }
+            updateCacheLoadedUI()
         }
     }
 
-    func stateRemoteLoaded(comics: [Comic]) {
+    func stateRemoteLoaded(response: UpdateListModel.RemoteLoadedResponse) {
         LoadingView.hide()
 
-        var snapshot = UpdateListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
+        let comics = response.comics
+        var snapshot = UpdateListModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(comics, toSection: 0)
 
         dataSource.apply(snapshot) { [weak self] in
             guard let self else { return }
-            if comics.isEmpty {
-                var content = Self.makeError()
-                content.buttonProperties.primaryAction = makeReloadAction()
-                contentUnavailableConfiguration = content
-            }
-            else {
-                contentUnavailableConfiguration = nil
-            }
+            updateRemoteLoadedUI(isEmpty: comics.isEmpty)
         }
     }
 
-    func stateSearchResult(comics: [Comic]) {
-        var snapshot = UpdateListModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(comics, toSection: .main)
+    func stateLocalSearched(response: UpdateListModel.LocalSearchedResponse) {
+        let comics = response.comics
+        var snapshot = UpdateListModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(comics, toSection: 0)
 
         dataSource.apply(snapshot) { [weak self] in
             guard let self else { return }
-            contentUnavailableConfiguration = comics.isEmpty ? Self.makeEmpty(text: "找不到漫畫") : nil
+            updateLocalSearchedUI(isEmpty: comics.isEmpty)
         }
     }
 
-    func stateFavoriteAdded(comic: Comic) {
+    func stateFavoriteAdded(response: UpdateListModel.FavoriteAddedResponse) {
+        let comic = response.comic
         var snapshot = dataSource.snapshot()
         snapshot.reloadItems([comic])
         dataSource.apply(snapshot)
     }
 
-    func stateFavoriteRemoved(comic: Comic) {
+    func stateFavoriteRemoved(response: UpdateListModel.FavoriteRemovedResponse) {
+        let comic = response.comic
         var snapshot = dataSource.snapshot()
         snapshot.reloadItems([comic])
         dataSource.apply(snapshot)
     }
 
+    // MARK: - Update Something
+    
+    func updateCacheLoadedUI() {
+        contentUnavailableConfiguration = nil
+
+        if firstInit {
+            LoadingView.show()
+            firstInit = false
+            vm.doAction(.loadRemote)
+        }
+    }
+    
+    func updateRemoteLoadedUI(isEmpty: Bool) {
+        if isEmpty {
+            var content = Self.makeError()
+            content.buttonProperties.primaryAction = makeReloadAction()
+            contentUnavailableConfiguration = content
+        }
+        else {
+            contentUnavailableConfiguration = nil
+        }
+    }
+    
+    func updateLocalSearchedUI(isEmpty: Bool) {
+        contentUnavailableConfiguration = isEmpty ? Self.makeEmpty(text: "找不到漫畫") : nil
+    }
+    
     // MARK: - Make Something
 
     func makeListLayout() -> UICollectionViewCompositionalLayout {
         var config = UICollectionLayoutListConfiguration(appearance: .plain)
         config.separatorConfiguration.bottomSeparatorInsets = .init(top: 0, leading: 86, bottom: 0, trailing: 0)
-
-        config.leadingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            guard let self else { return nil }
-
-            return makeFavoriteAction(indexPath: indexPath)
-        }
-
-        config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            guard let self else { return nil }
-
-            return makeFavoriteAction(indexPath: indexPath)
-        }
+        config.leadingSwipeActionsConfigurationProvider = makeSwipeProvider()
+        config.trailingSwipeActionsConfigurationProvider = makeSwipeProvider()
 
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
-    func makeCell() -> UpdateListModels.CellRegistration {
-        .init { cell, _, item in
-            cell.contentConfiguration = UIHostingConfiguration {
-                CellContentView(comic: item, cellType: .update)
-            }
+    func makeSwipeProvider() -> UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider {
+        { [weak self] indexPath in
+            guard let self else { return nil }
+
+            return makeSwipeAction(indexPath: indexPath)
         }
     }
-
-    func makeDataSource() -> UpdateListModels.DataSource {
-        let cell = makeCell()
-
-        return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
-            collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: itemIdentifier)
-        }
-    }
-
-    func makeFavoriteAction(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+    
+    func makeSwipeAction(indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let comic = dataSource.itemIdentifier(for: indexPath) else {
             return nil
         }
 
-        let favorited = comic.favorited
-
-        if favorited {
-            let action = UIContextualAction(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
-                self?.vm.doAction(.removeFavorite(comic: comic))
-            }.setup(\.backgroundColor, value: .orange)
-
-            return .init(actions: [action])
+        switch comic.favorited {
+        case true:
+            return .init(actions: [makeRemoveFavoriteAction(comic: comic)])
+        case false:
+            return .init(actions: [makeAddFavoriteAction(comic: comic)])
         }
-
-        let action = UIContextualAction(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
-            self?.vm.doAction(.addFavorite(comic: comic))
+    }
+    
+    func makeAddFavoriteAction(comic: Comic) -> UIContextualAction {
+        .init(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
+            guard let self else { return }
+            vm.doAction(.addFavorite(request: .init(comic: comic)))
         }.setup(\.backgroundColor, value: .blue)
+    }
+    
+    func makeRemoveFavoriteAction(comic: Comic) -> UIContextualAction {
+        .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
+            guard let self else { return }
+            vm.doAction(.removeFavorite(request: .init(comic: comic)))
+        }.setup(\.backgroundColor, value: .orange)
+    }
+    
+    func makeCell() -> UpdateListModel.CellRegistration {
+        .init { cell, _, comic in
+            cell.contentConfiguration = UIHostingConfiguration {
+                CellContentView(comic: comic, cellType: .update)
+            }
+        }
+    }
 
-        return .init(actions: [action])
+    func makeDataSource() -> UpdateListModel.DataSource {
+        let cell = makeCell()
+
+        return .init(collectionView: vo.list) { collectionView, indexPath, comic in
+            collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: comic)
+        }
     }
 
     func makeReloadAction() -> UIAction {
-        UIAction { [weak self] _ in
+        .init { [weak self] _ in
             guard let self else { return }
             view.endEditing(true)
             navigationItem.searchController?.searchBar.text = nil
@@ -227,14 +248,22 @@ private extension UpdateListVC {
     // MARK: - Do Something
 
     func doSearchOrLoadCache() {
-        if let keywords = navigationItem.searchController?.searchBar.text?.gb,
-           !keywords.isEmpty
-        {
-            vm.doAction(.localSearch(keywords: keywords))
+        if let keywords = getSearchKeywords() {
+            vm.doAction(.localSearch(request: .init(keywords: keywords)))
         }
         else {
             vm.doAction(.loadCache)
         }
+    }
+
+    // MARK: - Get Something
+    
+    func getSearchKeywords() -> String? {
+        guard let result = navigationItem.searchController?.searchBar.text?.gb else {
+            return nil
+        }
+        
+        return result.isEmpty ? nil : result
     }
 }
 

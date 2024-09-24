@@ -10,6 +10,7 @@ final class ReaderVO {
     let mainView = UIView(frame: .zero)
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         .setup(\.backgroundColor, value: .white)
+        .setup(\.isHidden, value: false)
 
     let list = UICollectionView(frame: .zero, collectionViewLayout: .init())
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
@@ -23,18 +24,6 @@ final class ReaderVO {
     let nextItem = UIBarButtonItem(title: "下一話")
         .setup(\.isEnabled, value: false)
 
-    let prevLabel = UILabel(frame: .zero)
-        .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
-        .setup(\.layer.zPosition, value: -1)
-        .setup(\.isHidden, value: true)
-        .setup(\.font, value: .preferredFont(forTextStyle: .headline))
-
-    let nextLabel = UILabel(frame: .zero)
-        .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
-        .setup(\.layer.zPosition, value: -1)
-        .setup(\.isHidden, value: true)
-        .setup(\.font, value: .preferredFont(forTextStyle: .headline))
-
     init() {
         setupSelf()
         addViews()
@@ -44,31 +33,18 @@ final class ReaderVO {
 // MARK: - Public
 
 extension ReaderVO {
-    func reloadUI(model: ReaderModels.DisplayModel) {
-        list.setContentOffset(.zero, animated: false)
+    func reloadEnableUI(response: ReaderModel.DataLoadedResponse) {
         mainView.isHidden = false
-        list.reloadData()
-        mainView.isUserInteractionEnabled = true
+        prevItem.isEnabled = response.hasPrev
         moreItem.isEnabled = true
-
-        prevItem.isEnabled = model.hasPrev
-        prevItem.title = model.prevEpisode?.title ?? "上一話"
-        nextItem.isEnabled = model.hasNext
-        nextItem.title = model.nextEpisode?.title ?? "下一話"
-
-        prevLabel.text = model.prevEpisode?.title ?? "上一話"
-        prevLabel.isHidden = !model.hasPrev
-        nextLabel.text = model.nextEpisode?.title ?? "下一話"
-        nextLabel.isHidden = !model.hasNext
+        nextItem.isEnabled = response.hasNext
     }
-
-    func reloadDisableAll() {
+    
+    func reloadDisableUI() {
         mainView.isHidden = true
         prevItem.isEnabled = false
-        prevLabel.isHidden = true
         moreItem.isEnabled = false
         nextItem.isEnabled = false
-        nextLabel.isHidden = true
     }
 }
 
@@ -78,32 +54,32 @@ private extension ReaderVO {
     // MARK: Setup Something
 
     func setupSelf() {
-        // CompostiLayout need
-        // list.bounces = false
         list.contentInsetAdjustmentBehavior = .never
-        // list.insetsLayoutMarginsFromSafeArea = false
         list.registerCell(ReaderCell.self)
     }
 
     // MARK: - Add Something
 
     func addViews() {
-        list.addSubview(nextLabel)
-        list.addSubview(prevLabel)
-
         mainView.addSubview(list)
 
         NSLayoutConstraint.activate([
-            list.topAnchor.constraint(equalTo: mainView.topAnchor),
+            list.topAnchor.constraint(equalTo: mainView.topAnchor, constant: getStatusBarHeight()),
             list.leadingAnchor.constraint(equalTo: mainView.leadingAnchor),
             list.trailingAnchor.constraint(equalTo: mainView.trailingAnchor),
             list.bottomAnchor.constraint(equalTo: mainView.bottomAnchor, constant: -20),
-
-            prevLabel.centerYAnchor.constraint(equalTo: list.centerYAnchor),
-            prevLabel.leadingAnchor.constraint(equalTo: list.frameLayoutGuide.leadingAnchor, constant: 4),
-
-            nextLabel.centerYAnchor.constraint(equalTo: list.centerYAnchor),
-            nextLabel.trailingAnchor.constraint(equalTo: list.frameLayoutGuide.trailingAnchor, constant: -4),
         ])
+    }
+    
+    // MARK: - Get Something
+    
+    func getStatusBarHeight() -> CGFloat {
+        var result: CGFloat = 0
+        let scenes = UIApplication.shared.connectedScenes
+        let windowScene = scenes.first as? UIWindowScene
+        let window = windowScene?.windows.first
+        result = window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
+        
+        return result
     }
 }

@@ -9,30 +9,31 @@ import Combine
 import UIKit
 import WebParser
 
-final class ReaderVM {
-    @Published var state = ReaderModels.State.none
-    let model: ReaderModels.DisplayModel
+final class ReaderVM: ObservableObject {
+    @Published var state = ReaderModel.State.none
+    let comic: Comic
+    var currentEpisode: Comic.Episode
     let parser: Parser
-
+    var imageDatas: [ReaderModel.ImageData] = []
+    
     init(comic: Comic, episode: Comic.Episode) {
-        self.model = .init(comic: comic, episode: episode)
-        self.parser = .init(parserConfiguration: model.parserSetting)
+        self.comic = comic
+        self.currentEpisode = episode
+        self.parser = .init(parserConfiguration: .images(comic: comic, episode: episode))
     }
 }
 
 // MARK: - Public
 
 extension ReaderVM {
-    func doAction(_ action: ReaderModels.Action) {
+    func doAction(_ action: ReaderModel.Action) {
         switch action {
-        case .loadData:
-            actionLoadData()
+        case let .loadData(request):
+            actionLoadData(request: request)
         case .loadPrev:
             actionLoadPrev()
         case .loadNext:
             actionLoadNext()
-        case let .loadEpidoe(episode):
-            actionLoadEpisode(episode)
         }
     }
 }
@@ -40,58 +41,63 @@ extension ReaderVM {
 // MARK: - Private
 
 private extension ReaderVM {
-    // MARK: - Do Action
+    // MARK: Do Action
 
-    func actionLoadData() {
+    func actionLoadData(request: ReaderModel.LoadDataRequest) {
+        if let epidose = request.epidose {
+            currentEpisode = epidose
+        }
+        
+        parser.parserConfiguration.request = makeParseRequest()
+        
         Task {
             do {
-                let result = try await parser.start()
-                try await handleLoadData(result)
-                state = .dataLoaded
+                let result = try await parser.result()
+                let images = try await makeImagesWithParser(result: result)
+                imageDatas = images.compactMap { .init(uri: $0.uri) }
+                
+                if imageDatas.isEmpty {
+                    state = .dataLoadFail(response: .init(error: .empty))
+                }
+                else {
+                    let response = ReaderModel.DataLoadedResponse(
+                        episode: currentEpisode,
+                        hasPrev: getPrevEpidose() != nil,
+                        hasNext: getNextEpisode() != nil
+                    )
+                    state = .dataLoaded(response: response)
+                }
             }
             catch {
-                state = .dataLoaded
+                state = .dataLoadFail(response: .init(error: .parseFail))
             }
         }
     }
 
     func actionLoadPrev() {
-        guard let prevEposide = model.prevEpisode else {
-            state = .dataLoaded
+        guard let prevEpisode = getPrevEpidose() else {
+            state = .dataLoadFail(response: .init(error: .noPrev))
             return
         }
-
-        parser.parserConfiguration.request = makeNewParserRequest(prevEposide)
-        model.currentEpisode = prevEposide
-
-        actionLoadData()
+        
+        actionLoadData(request: .init(epidose: prevEpisode))
     }
 
     func actionLoadNext() {
-        guard let nextEpisode = model.nextEpisode else {
-            state = .dataLoaded
+        guard let nextEpisode = getNextEpisode() else {
+            state = .dataLoadFail(response: .init(error: .noNext))
             return
         }
-
-        parser.parserConfiguration.request = makeNewParserRequest(nextEpisode)
-        model.currentEpisode = nextEpisode
-
-        actionLoadData()
+        
+        actionLoadData(request: .init(epidose: nextEpisode))
     }
 
-    func actionLoadEpisode(_ episode: Comic.Episode) {
-        parser.parserConfiguration.request = makeNewParserRequest(episode)
-        model.currentEpisode = episode
+    // MARK: - Make Something
 
-        actionLoadData()
-    }
-
-    // MARK: - Handle Action
-
-    func handleLoadData(_ result: Any) async throws {
+    func makeImagesWithParser(result: Any) async throws -> [Comic.ImageData] {
         let array = AnyCodable(result).anyArray ?? []
 
-        model.images = array.compactMap {
+        let result: [Comic.ImageData] = array.compactMap {
             guard let index = $0["index"].int else {
                 return nil
             }
@@ -107,17 +113,29 @@ private extension ReaderVM {
             return .init(index: index, uri: uriDecode)
         }
 
-        if !model.images.isEmpty {
-            await DBWorker.shared.addComicHistory(model.comic, episode: model.currentEpisode)
+        if result.isEmpty {
+            throw ReaderModel.LoadImageError.empty
         }
+        
+        await DBWorker.shared.addComicHistory(comic, episode: currentEpisode)
+        
+        return result
     }
-
-    // MARK: - Make Something
-
-    func makeNewParserRequest(_ episode: Comic.Episode) -> URLRequest {
-        let uri = "https://tw.manhuagui.com/comic/\(model.comic.id)/\(episode.id).html"
+    
+    func makeParseRequest() -> URLRequest {
+        let uri = "https://tw.manhuagui.com/comic/\(comic.id)/\(currentEpisode.id).html"
         let urlComponents = URLComponents(string: uri)!
 
         return .init(url: urlComponents.url!)
+    }
+    
+    // MARK: - Get Something
+    
+    func getPrevEpidose() -> Comic.Episode? {
+        comic.episodes?.first(where: { $0.index == currentEpisode.index + 1 })
+    }
+    
+    func getNextEpisode() -> Comic.Episode? {
+        comic.episodes?.first(where: { $0.index == currentEpisode.index - 1 })
     }
 }

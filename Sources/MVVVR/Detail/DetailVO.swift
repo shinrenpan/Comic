@@ -17,26 +17,42 @@ final class DetailVO {
 
     let list = UICollectionView(frame: .zero, collectionViewLayout: makeListLayout())
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
+        .setup(\.refreshControl, value: .init(frame: .zero))
 
     let favoriteItem = UIBarButtonItem()
         .setup(\.image, value: .init(systemName: "star"))
 
     init() {
-        setupSelf()
         addViews()
+    }
+}
+
+// MARK: - Public
+
+extension DetailVO {
+    func reloadHeader(comic: Comic) {
+        header.reloadUI(comic: comic)
+    }
+    
+    func reloadFavoriteUI(comic: Comic) {
+        let imgNamed = comic.favorited ? "star.fill" : "star"
+        let image = UIImage(systemName: imgNamed)
+        favoriteItem.image = image
+    }
+    
+    func scrollListToWatched(indexPath: IndexPath?) {
+        guard let indexPath else {
+            return
+        }
+        
+        list.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
     }
 }
 
 // MARK: - Private
 
 private extension DetailVO {
-    // MARK: Setup Something
-
-    func setupSelf() {
-        list.refreshControl = .init(frame: .zero)
-    }
-
-    // MARK: - Add Something
+    // MARK: Add Something
 
     func addViews() {
         mainView.addSubview(header)

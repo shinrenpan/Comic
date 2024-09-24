@@ -19,9 +19,11 @@ final class ReaderCell: UICollectionViewCell {
         return result
     }
 
+    var callback: (() -> Void)?
+    
     override init(frame: CGRect) {
         super.init(frame: .zero)
-        backgroundColor = .white
+        setupSelf()
         addViews()
     }
 
@@ -34,25 +36,33 @@ final class ReaderCell: UICollectionViewCell {
 // MARK: - Public
 
 extension ReaderCell {
-    func reloadUI(item: Comic.ImageData) {
+    func reloadUI(uri: String) {
         imgView.kf.indicatorType = .custom(indicator: ReaderCellIndicator())
 
         imgView.kf.setImage(
-            with: URL(string: item.uri),
+            with: URL(string: uri),
             options: [
                 .requestModifier(modifier),
                 .processor(DownsamplingImageProcessor(size: imgView.frame.size)),
                 .scaleFactor(UIScreen.main.scale),
                 .cacheOriginalImage,
-            ]
-        )
+            ]) { [weak self] _ in
+                guard let self else { return }
+                callback?()
+            }
     }
 }
 
 // MARK: - Private
 
 private extension ReaderCell {
-    // MARK: Add Something
+    // MARK: Setup Something
+    
+    func setupSelf() {
+        backgroundColor = .white
+    }
+    
+    // MARK: - Add Something
 
     func addViews() {
         contentView.addSubview(imgView)
@@ -64,6 +74,4 @@ private extension ReaderCell {
             imgView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
         ])
     }
-
-    // MARK: - Make
 }

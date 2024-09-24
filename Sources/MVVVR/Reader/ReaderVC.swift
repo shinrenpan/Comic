@@ -12,16 +12,8 @@ final class ReaderVC: UIViewController {
     let vm: ReaderVM
     let router = ReaderRouter()
     var binding: Set<AnyCancellable> = .init()
-    var hideNavbar = false
-    var hideStatusBar = false
-    var shouldLoadPrev = false
-    var shouldLoadNext = false
-
-    var horizontalRead = true {
-        didSet {
-            updateListLayout()
-        }
-    }
+    var hideBar = false
+    var readDirection = ReaderModel.ReadDirection.horizontal
 
     init(comic: Comic, episode: Comic.Episode) {
         self.vm = .init(comic: comic, episode: episode)
@@ -38,13 +30,12 @@ final class ReaderVC: UIViewController {
         setupSelf()
         setupBinding()
         setupVO()
-        horizontalRead = true
     }
 
     override func viewIsAppearing(_ animated: Bool) {
         super.viewIsAppearing(animated)
         LoadingView.show()
-        vm.doAction(.loadData)
+        vm.doAction(.loadData(request: .init(epidose: nil)))
     }
 
     override func viewWillDisappear(_ animated: Bool) {
@@ -54,7 +45,7 @@ final class ReaderVC: UIViewController {
     }
 
     override var prefersStatusBarHidden: Bool {
-        hideStatusBar
+        hideBar
     }
 
     // home indicator 變灰
@@ -84,13 +75,16 @@ private extension ReaderVC {
 
     func setupBinding() {
         vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            if self?.viewIfLoaded?.window == nil { return }
+            guard let self else { return }
+            if viewIfLoaded?.window == nil { return }
 
             switch state {
             case .none:
-                self?.stateNone()
-            case .dataLoaded:
-                self?.stateDataLoaded()
+                stateNone()
+            case let .dataLoaded(response):
+                stateDataLoaded(response: response)
+            case let .dataLoadFail(response):
+                stateDataLoadFail(response: response)
             }
         }.store(in: &binding)
     }
@@ -123,13 +117,13 @@ private extension ReaderVC {
 
     // MARK: - Update Something
 
-    func updateUI(delay: Bool) {
-        navigationController?.setNavigationBarHidden(hideNavbar, animated: true)
-        navigationController?.setToolbarHidden(hideNavbar, animated: true)
+    func updateHiddenBarUI(delay: Bool) {
+        navigationController?.setNavigationBarHidden(hideBar, animated: true)
+        navigationController?.setToolbarHidden(hideBar, animated: true)
+        
         let time = delay ? 0.2 : 0.0
 
         DispatchQueue.main.asyncAfter(deadline: .now() + time) {
-            self.hideStatusBar = self.hideNavbar
             self.setNeedsUpdateOfHomeIndicatorAutoHidden()
             self.setNeedsStatusBarAppearanceUpdate()
             self.setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
@@ -137,7 +131,7 @@ private extension ReaderVC {
     }
 
     func updateListLayout() {
-        let layout = horizontalRead ? makeHorizontalLayout() : makeVerticalLayout()
+        let layout = makeListLayout()
         vo.list.setCollectionViewLayout(layout, animated: false)
         layout.invalidateLayout()
         vo.list.reloadData()
@@ -147,28 +141,30 @@ private extension ReaderVC {
 
     func stateNone() {}
 
-    func stateDataLoaded() {
+    func stateDataLoaded(response: ReaderModel.DataLoadedResponse) {
         LoadingView.hide()
-        navigationItem.title = vm.model.currentEpisode.title
-        contentUnavailableConfiguration = nil
-        hideNavbar = !vm.model.images.isEmpty
-        vo.reloadUI(model: vm.model)
-
-        updateUI(delay: true)
-
-        if vm.model.images.isEmpty {
-            hideNavbar = false
-            vo.mainView.isHidden = true
-            contentUnavailableConfiguration = Self.makeEmpty()
-        }
-        else {
-            contentUnavailableConfiguration = nil
-        }
+        navigationItem.title = response.episode.title
+        vo.reloadEnableUI(response: response)
+        updateHiddenBarUI(delay: true)
+        updateListLayout()
+    }
+    
+    func stateDataLoadFail(response: ReaderModel.ImageLoadFailResponse) {
+        LoadingView.hide()
     }
 
     // MARK: - Make Something
 
-    func makeVerticalLayout() -> UICollectionViewFlowLayout {
+    func makeListLayout() -> UICollectionViewLayout {
+        switch readDirection {
+        case .horizontal:
+            return makeHorizontalListLayout()
+        case .vertical:
+            return makeVerticalListLayout()
+        }
+    }
+    
+    func makeVerticalListLayout() -> UICollectionViewFlowLayout {
         let result = UICollectionViewFlowLayout()
         result.scrollDirection = .vertical
         result.minimumLineSpacing = 0
@@ -180,7 +176,7 @@ private extension ReaderVC {
         return result
     }
 
-    func makeHorizontalLayout() -> UICollectionViewFlowLayout {
+    func makeHorizontalListLayout() -> UICollectionViewFlowLayout {
         let result = UICollectionViewFlowLayout()
         result.scrollDirection = .horizontal
         result.minimumLineSpacing = 0
@@ -190,41 +186,6 @@ private extension ReaderVC {
         vo.list.alwaysBounceHorizontal = true
 
         return result
-    }
-
-    func makeReloadAction() -> UIAction {
-        .init { [weak self] _ in
-            guard let self else { return }
-            vo.mainView.isHidden = true
-            LoadingView.show()
-            vm.doAction(.loadData)
-        }
-    }
-
-    func makeReaderDirectionAction() -> UIAction {
-        let title: String = horizontalRead ? "直式閱讀" : "橫向閱讀"
-
-        return .init(title: title) { [weak self] _ in
-            guard let self else { return }
-            horizontalRead.toggle()
-        }.setup(\.attributes, value: .disabled)
-    }
-
-    func makeEpisodePickAction() -> UIAction {
-        .init(title: "選取集數", image: .init(systemName: "list.number")) { [weak self] _ in
-            guard let self else { return }
-            router.showEpisodePicker(comic: vm.model.comic)
-        }
-    }
-
-    func makeFaveriteAction() -> UIAction {
-        let title: String = vm.model.comic.favorited ? "取消收藏" : "加入收藏"
-        let image: UIImage? = vm.model.comic.favorited ? .init(systemName: "star.fill") : .init(systemName: "star")
-
-        return .init(title: title, image: image) { [weak self] _ in
-            guard let self else { return }
-            vm.model.comic.favorited.toggle()
-        }
     }
 
     func makeMoreItemMenu() -> UIMenu {
@@ -251,28 +212,80 @@ private extension ReaderVC {
         return .init(title: "更多...", children: [readerDirection, favorite, episodePick])
     }
 
+    func makeReaderDirectionAction() -> UIAction {
+        .init(title: readDirection.toChangeTitle) { [weak self] _ in
+            guard let self else { return }
+            doChangeReadDirection()
+        }
+    }
+    
+    func makeEpisodePickAction() -> UIAction {
+        .init(title: "選取集數", image: .init(systemName: "list.number")) { [weak self] _ in
+            guard let self else { return }
+            router.showEpisodePicker(comic: vm.comic)
+        }
+    }
+    
+    func makeFaveriteAction() -> UIAction {
+        let title: String = vm.comic.favorited ? "取消收藏" : "加入收藏"
+        let image: UIImage? = vm.comic.favorited ? .init(systemName: "star.fill") : .init(systemName: "star")
+
+        return .init(title: title, image: image) { [weak self] _ in
+            guard let self else { return }
+            vm.comic.favorited.toggle()
+        }
+    }
+    
+    func makeRatio(image: UIImage?, maxWidth: CGFloat?) -> CGFloat? {
+        guard let image, let maxWidth else {
+            return nil
+        }
+        
+        guard image.size.width > 0, image.size.height > 0 else {
+            return nil
+        }
+        
+        if image.size.width > maxWidth {
+            return maxWidth / image.size.width
+        }
+        else {
+            return image.size.width / maxWidth
+        }
+    }
+    
     // MARK: - Do Something
 
     func doLoadPrev() {
         LoadingView.show()
-        vo.reloadDisableAll()
+        vo.reloadDisableUI()
         vm.doAction(.loadPrev)
     }
 
     func doLoadNext() {
         LoadingView.show()
-        vo.reloadDisableAll()
+        vo.reloadDisableUI()
         vm.doAction(.loadNext)
     }
 
-    func doLoadEpisode(_ episode: Comic.Episode) {
-        if episode.id == vm.model.comic.watchedId {
+    func doChangeEpisode(episode: Comic.Episode) {
+        if episode.id == vm.comic.watchedId {
             return
         }
 
         LoadingView.show()
-        vo.reloadDisableAll()
-        vm.doAction(.loadEpidoe(episode))
+        vo.reloadDisableUI()
+        vm.doAction(.loadData(request: .init(epidose: episode)))
+    }
+    
+    func doChangeReadDirection() {
+        switch readDirection {
+        case .horizontal:
+            readDirection = .vertical
+        case .vertical:
+            readDirection = .horizontal
+        }
+        
+        updateListLayout()
     }
 }
 
@@ -280,14 +293,23 @@ private extension ReaderVC {
 
 extension ReaderVC: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        vm.model.images.count
+        vm.imageDatas.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.reuseCell(ReaderCell.self, for: indexPath)
-        let item = vm.model.images[indexPath.row]
-        cell.reloadUI(item: item)
-
+        let data = vm.imageDatas[indexPath.item]
+        
+        cell.callback = {
+            if collectionView.indexPathsForVisibleItems.contains(indexPath) {
+                UIView.setAnimationsEnabled(false)
+                collectionView.reloadItems(at: [indexPath])
+                UIView.setAnimationsEnabled(true)
+            }
+        }
+        
+        cell.reloadUI(uri: data.uri)
+        
         return cell
     }
 }
@@ -297,40 +319,8 @@ extension ReaderVC: UICollectionViewDataSource {
 extension ReaderVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: false)
-        hideNavbar.toggle()
-        updateUI(delay: false)
-    }
-}
-
-// MARK: - UIScrollViewDelegate
-
-extension ReaderVC: UIScrollViewDelegate {
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        if shouldLoadPrev, vo.prevItem.isEnabled {
-            shouldLoadPrev = false
-            doLoadPrev()
-        }
-
-        if shouldLoadNext, vo.nextItem.isEnabled {
-            shouldLoadNext = false
-            doLoadNext()
-        }
-    }
-
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if !scrollView.isDragging { return }
-
-        let frame = scrollView.frame
-        let contentSize = scrollView.contentSize
-
-        switch horizontalRead {
-        case true:
-            shouldLoadPrev = scrollView.contentOffset.x < -vo.prevLabel.frame.width
-            shouldLoadNext = scrollView.contentOffset.x + frame.width > contentSize.width + vo.nextLabel.frame.width
-        case false:
-            shouldLoadPrev = scrollView.contentOffset.y < -vo.prevLabel.frame.height
-            shouldLoadNext = scrollView.contentOffset.y + frame.height > contentSize.height + vo.nextLabel.frame.height
-        }
+        hideBar.toggle()
+        updateHiddenBarUI(delay: false)
     }
 }
 
@@ -338,25 +328,29 @@ extension ReaderVC: UIScrollViewDelegate {
 
 extension ReaderVC: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        collectionView.frame.size
-        /*
-         var result = collectionView.frame.size
-
-         switch horizontalRead {
-         case true:
-             return result
-         case false:
-             return result
-         }*/
+        var result = collectionView.frame.size
+        
+        switch readDirection {
+        case .horizontal:
+            return result
+        case .vertical:
+            if let image = vm.imageDatas[indexPath.item].image, let ratio = makeRatio(image: image, maxWidth: result.width) {
+                // 有小數點會造成產生一條白線
+                let height = Int(image.size.height * ratio)
+                result.height = CGFloat(height)
+            }
+            
+            return result
+        }
     }
 }
 
 // MARK: - EpisodeListModels.SelectedDelegate
 
-extension ReaderVC: EpisodeListModels.SelectedDelegate {
+extension ReaderVC: EpisodeListModel.SelectedDelegate {
     func episodeList(list: EpisodeListVC, selected episode: Comic.Episode) {
         list.dismiss(animated: true) {
-            self.doLoadEpisode(episode)
+            self.doChangeEpisode(episode: episode)
         }
     }
 }

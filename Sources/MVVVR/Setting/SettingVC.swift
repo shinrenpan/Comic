@@ -46,8 +46,8 @@ private extension SettingVC {
             switch state {
             case .none:
                 stateNone()
-            case let .dataLoaded(items):
-                stateDataLoaded(items)
+            case let .dataLoaded(response):
+                stateDataLoaded(response: response)
             }
         }.store(in: &binding)
     }
@@ -69,19 +69,19 @@ private extension SettingVC {
 
     func stateNone() {}
 
-    func stateDataLoaded(_ items: [SettingModels.Item]) {
+    func stateDataLoaded(response: SettingModel.DataLoadedResponse) {
         LoadingView.hide()
 
-        var snapshot = SettingModels.Snapshot()
-        snapshot.appendSections([.main])
-        snapshot.appendItems(items, toSection: .main)
-        snapshot.reloadSections([.main])
+        let items = response.items
+        var snapshot = SettingModel.Snapshot()
+        snapshot.appendSections([0])
+        snapshot.appendItems(items, toSection: 0)
         dataSource.apply(snapshot)
     }
 
     // MARK: - Make Something
 
-    func makeCell() -> SettingModels.CellRegistration {
+    func makeCell() -> SettingModel.CellRegistration {
         .init { cell, _, item in
             var config = UIListContentConfiguration.valueCell()
             config.text = item.title
@@ -90,7 +90,7 @@ private extension SettingVC {
         }
     }
 
-    func makeDataSource() -> SettingModels.DataSource {
+    func makeDataSource() -> SettingModel.DataSource {
         let cell = makeCell()
 
         return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
@@ -98,7 +98,7 @@ private extension SettingVC {
         }
     }
 
-    func makeItemAction(item: SettingModels.Item) -> UIAlertAction {
+    func makeItemAction(item: SettingModel.Item) -> UIAlertAction {
         .init(title: "確定清除", style: .destructive) { [weak self] _ in
             guard let self else { return }
 
@@ -117,7 +117,7 @@ private extension SettingVC {
 
     // MARK: - Do Something
 
-    func doTapItem(item: SettingModels.Item, cell: UICollectionViewCell?) {
+    func doTapItem(item: SettingModel.Item, cell: UICollectionViewCell?) {
         switch item.settingType {
         case .cacheSize, .favorite, .history:
             let cancel = UIAlertAction(title: "取消", style: .cancel)
@@ -129,7 +129,7 @@ private extension SettingVC {
         }
     }
 
-    func doCleanAction(action: SettingModels.Action) {
+    func doCleanAction(action: SettingModel.Action) {
         LoadingView.show(text: "Cleaning...")
         vm.doAction(action)
     }

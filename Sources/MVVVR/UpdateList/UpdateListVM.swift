@@ -9,27 +9,26 @@ import Combine
 import UIKit
 import WebParser
 
-final class UpdateListVM {
-    @Published var state = UpdateListModels.State.none
-    let model = UpdateListModels.DisplayModel()
+final class UpdateListVM: ObservableObject {
+    @Published var state = UpdateListModel.State.none
     let parser = Parser(parserConfiguration: .update())
 }
 
 // MARK: - Public
 
 extension UpdateListVM {
-    func doAction(_ action: UpdateListModels.Action) {
+    func doAction(_ action: UpdateListModel.Action) {
         switch action {
         case .loadCache:
             actionLoadCache()
         case .loadRemote:
             actionLoadRemote()
-        case let .localSearch(keywords):
-            actionSearch(keywords: keywords)
-        case let .addFavorite(comic):
-            actionAddFavorite(comic: comic)
-        case let .removeFavorite(comic):
-            actionRemoveFavorite(comic: comic)
+        case let .localSearch(request):
+            actionLocalSearch(request: request)
+        case let .addFavorite(request):
+            actionAddFavorite(request: request)
+        case let .removeFavorite(request):
+            actionRemoveFavorite(request: request)
         }
     }
 }
@@ -42,40 +41,48 @@ private extension UpdateListVM {
     func actionLoadCache() {
         Task {
             let comics = await DBWorker.shared.getComicList()
-            state = .cacheLoaded(comics: comics)
+            let response = UpdateListModel.CacheLoadedResponse(comics: comics)
+            state = .cacheLoaded(response: response)
         }
     }
 
     func actionLoadRemote() {
         Task {
             do {
-                let result = try await parser.start()
+                let result = try await parser.result()
                 let array = AnyCodable(result).anyArray ?? []
                 await DBWorker.shared.insertOrUpdateComics(array)
                 let comics = await DBWorker.shared.getComicList()
-                state = .remoteLoaded(comics: comics)
+                let response = UpdateListModel.RemoteLoadedResponse(comics: comics)
+                state = .remoteLoaded(response: response)
             }
             catch {
                 let comics = await DBWorker.shared.getComicList()
-                state = .remoteLoaded(comics: comics)
+                let response = UpdateListModel.RemoteLoadedResponse(comics: comics)
+                state = .remoteLoaded(response: response)
             }
         }
     }
 
-    func actionSearch(keywords: String) {
+    func actionLocalSearch(request: UpdateListModel.LocalSearchRequest) {
         Task {
-            let comics = await DBWorker.shared.getComicListByKeywords(keywords)
-            state = .searchResult(comics: comics)
+            let comics = await DBWorker.shared.getComicListByKeywords(request.keywords)
+            let response = UpdateListModel.LocalSearchedResponse(comics: comics)
+            state = .localSearched(response: response)
         }
     }
 
-    func actionAddFavorite(comic: Comic) {
+    func actionAddFavorite(request: UpdateListModel.AddFavoriteRequest) {
+        let comic = request.comic
         comic.favorited = true
-        state = .favoriteAdded(comic: comic)
+        let response = UpdateListModel.FavoriteAddedResponse(comic: comic)
+        state = .favoriteAdded(response: response)
     }
 
-    func actionRemoveFavorite(comic: Comic) {
+    func actionRemoveFavorite(request: UpdateListModel.RemoveFavoriteRequest) {
+        let comic = request.comic
         comic.favorited = false
-        state = .favoriteRemoved(comic: comic)
+        let response = UpdateListModel.FavoriteRemovedResponse(comic: comic)
+        state = .favoriteRemoved(response: response)
     }
 }
