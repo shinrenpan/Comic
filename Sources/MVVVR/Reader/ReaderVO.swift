@@ -33,6 +33,11 @@ final class ReaderVO {
 // MARK: - Public
 
 extension ReaderVO {
+    func reloadListToStartPosition() {
+        let zero = IndexPath(item: 0, section: 0)
+        list.scrollToItem(at: zero, at: .top, animated: false)
+    }
+    
     func reloadEnableUI(response: ReaderModel.DataLoadedResponse) {
         mainView.isHidden = false
         prevItem.isEnabled = response.hasPrev
