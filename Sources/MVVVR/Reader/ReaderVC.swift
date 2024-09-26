@@ -147,6 +147,7 @@ private extension ReaderVC {
         vo.reloadEnableUI(response: response)
         updateHiddenBarUI(delay: true)
         updateListLayout()
+        vo.reloadListToStartPosition()
     }
     
     func stateDataLoadFail(response: ReaderModel.ImageLoadFailResponse) {
