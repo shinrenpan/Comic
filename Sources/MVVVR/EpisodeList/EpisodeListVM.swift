@@ -7,6 +7,7 @@
 import Combine
 import UIKit
 
+@MainActor
 final class EpisodeListVM: ObservableObject {
     @Published var state = EpisodeListModel.State.none
     let comic: Comic

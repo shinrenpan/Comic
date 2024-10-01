@@ -8,6 +8,7 @@ import Combine
 import Kingfisher
 import UIKit
 
+@MainActor
 final class SettingVM: ObservableObject {
     @Published var state = SettingModel.State.none
 }
@@ -77,6 +78,7 @@ private extension SettingVM {
 
     // MARK: - Get Something
 
+    nonisolated
     func getCacheImagesSize() async -> String {
         let size: UInt = await (try? ImageCache.default.diskStorageSize) ?? 0
 

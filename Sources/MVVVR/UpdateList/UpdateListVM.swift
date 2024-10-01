@@ -9,6 +9,7 @@ import Combine
 import UIKit
 import WebParser
 
+@MainActor
 final class UpdateListVM: ObservableObject {
     @Published var state = UpdateListModel.State.none
     let parser = Parser(parserConfiguration: .update())
@@ -50,10 +51,10 @@ private extension UpdateListVM {
         Task {
             do {
                 let result = try await parser.result()
-                let array = AnyCodable(result).anyArray ?? []
-                await DBWorker.shared.insertOrUpdateComics(array)
-                let comics = await DBWorker.shared.getComicList()
-                let response = UpdateListModel.RemoteLoadedResponse(comics: comics)
+                let comics: [Comic] = (AnyCodable(result).anyArray ?? []).compactMap { .init(anyCodable: $0 )}
+                await DBWorker.shared.insertOrUpdateComics(comics)
+                let comicList = await DBWorker.shared.getComicList()
+                let response = UpdateListModel.RemoteLoadedResponse(comics: comicList)
                 state = .remoteLoaded(response: response)
             }
             catch {

@@ -38,17 +38,7 @@ private extension AppDelegate {
     // MARK: Setup Something
 
     func setupBinding() {
-        NotificationCenter.default.addObserver(forName: .showLoading, object: nil, queue: .main) { [weak self] notify in
-            LoadingView.hide()
-
-            guard let self else { return }
-
-            guard let loadingView = notify.object as? LoadingView else {
-                return
-            }
-
-            showLoadingView(view: loadingView)
-        }
+        NotificationCenter.default.addObserver(self, selector: #selector(prepareShowLoading), name: .showLoading, object: nil)
     }
 
     func setupAppearance() {
@@ -106,5 +96,18 @@ private extension AppDelegate {
         ]
 
         return result
+    }
+    
+    // MARK: - Target / Action
+    
+    @objc
+    func prepareShowLoading(notify: Notification) {
+        LoadingView.hide()
+
+        guard let loadingView = notify.object as? LoadingView else {
+            return
+        }
+
+        showLoadingView(view: loadingView)
     }
 }

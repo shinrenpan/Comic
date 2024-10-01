@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class SettingRouter {
     weak var vc: SettingVC?
 }

@@ -9,9 +9,9 @@ import SwiftData
 import UIKit
 
 @Model
-final class Comic: Hashable {
+class Comic: Hashable, @unchecked Sendable {
     /// Id
-    @Attribute(.unique) let id: String
+    @Attribute(.unique) private(set) var id: String
 
     /// Title
     var title: String
@@ -52,6 +52,22 @@ final class Comic: Hashable {
         self.hasNew = hasNew
     }
 
+    init?(anyCodable: AnyCodable) {
+        guard let id = anyCodable["id"].string, !id.isEmpty else {
+            return nil
+        }
+
+        self.id = id
+        self.title = anyCodable["title"].string ?? "unKnown"
+        self.note = anyCodable["note"].string ?? "unKnown"
+        self.lastUpdate = anyCodable["lastUpdate"].double ?? Date().timeIntervalSince1970
+        self.favorited = false
+        self.hasNew = false
+        
+        let detailCover = anyCodable["detail"]["cover"].string ?? ""
+        self.detail = .init(cover: detailCover, desc: "", author: "")
+    }
+    
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -96,14 +112,14 @@ extension Comic {
 
 extension Comic {
     @Model
-    final class Episode: Hashable {
+    class Episode: Hashable, @unchecked Sendable {
         var comic: Comic?
         /// Id
-        let id: String
+        private(set) var id: String
         /// Index
-        let index: Int
+        private(set) var index: Int
         /// Title
-        let title: String
+        private(set) var title: String
 
         init(comic: Comic? = nil, id: String, index: Int, title: String) {
             self.comic = comic

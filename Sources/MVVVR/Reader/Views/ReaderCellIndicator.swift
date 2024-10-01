@@ -7,7 +7,8 @@
 import Kingfisher
 import UIKit
 
-struct ReaderCellIndicator: Indicator {
+@MainActor
+struct ReaderCellIndicator: @preconcurrency Indicator {
     let label = UILabel(frame: .zero)
         .setup(\.font, value: .preferredFont(forTextStyle: .extraLargeTitle))
         .setup(\.textAlignment, value: .center)

@@ -50,7 +50,7 @@ extension DetailModel {
 // MARK: - Models
 
 extension DetailModel {
-    final class Episode: NSObject {
+    class Episode: NSObject, @unchecked Sendable {
         let data: Comic.Episode
         let selected: Bool
 

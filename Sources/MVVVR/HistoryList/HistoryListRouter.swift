@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class HistoryListRouter {
     weak var vc: HistoryListVC?
 }

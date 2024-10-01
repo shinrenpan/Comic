@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class DetailRouter {
     weak var vc: DetailVC?
 }

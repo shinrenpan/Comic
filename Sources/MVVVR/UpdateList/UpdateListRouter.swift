@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class UpdateListRouter {
     weak var vc: UpdateListVC?
 }

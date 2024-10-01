@@ -47,7 +47,7 @@ extension SettingModel {
         case version
     }
 
-    final class Item: NSObject {
+    final class Item: NSObject, Sendable {
         let title: String
         let subTitle: String
         let settingType: SettingType

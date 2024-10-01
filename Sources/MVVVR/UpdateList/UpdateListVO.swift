@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class UpdateListVO {
     let mainView = UIView(frame: .zero)
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)

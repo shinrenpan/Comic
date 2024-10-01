@@ -43,10 +43,7 @@ private extension LoadingView {
     }
 
     func setupBinding() {
-        NotificationCenter.default.addObserver(forName: .hideLoading, object: nil, queue: .main) { [weak self] _ in
-            guard let self else { return }
-            removeFromSuperview()
-        }
+        NotificationCenter.default.addObserver(self, selector: #selector(hideLoading), name: .hideLoading, object: nil)
     }
 
     // MARK: - Add Something
@@ -77,5 +74,12 @@ private extension LoadingView {
         ])
 
         loading.startAnimating()
+    }
+    
+    // MARK: - Target / Action
+    
+    @objc
+    func hideLoading() {
+        removeFromSuperview()
     }
 }

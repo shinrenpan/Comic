@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class EpisodeListRouter {
     weak var vc: EpisodeListVC?
 }

@@ -9,6 +9,7 @@ import Combine
 import UIKit
 import WebParser
 
+@MainActor
 final class ReaderVM: ObservableObject {
     @Published var state = ReaderModel.State.none
     let comic: Comic

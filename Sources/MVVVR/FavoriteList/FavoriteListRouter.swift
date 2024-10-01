@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class FavoriteListRouter {
     weak var vc: FavoriteListVC?
 }

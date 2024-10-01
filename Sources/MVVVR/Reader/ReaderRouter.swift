@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class ReaderRouter {
     weak var vc: ReaderVC?
 }

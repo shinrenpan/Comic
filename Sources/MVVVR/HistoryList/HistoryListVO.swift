@@ -6,6 +6,7 @@
 
 import UIKit
 
+@MainActor
 final class HistoryListVO {
     let mainView = UIView(frame: .zero)
         .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)

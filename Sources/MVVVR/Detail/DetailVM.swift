@@ -9,6 +9,7 @@ import Combine
 import UIKit
 import WebParser
 
+@MainActor
 final class DetailVM: ObservableObject {
     @Published var state = DetailModel.State.none
     let comic: Comic

@@ -8,19 +8,9 @@ import AnyCodable
 import SwiftData
 import UIKit
 
+@ModelActor
 actor DBWorker {
-    static let shared = DBWorker()
-    private var container: ModelContainer?
-    private var context: ModelContext?
-
-    private init() {
-        self.container = try? ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self)
-
-        if let container {
-            self.context = .init(container)
-            context?.autosaveEnabled = true
-        }
-    }
+    static let shared = DBWorker(modelContainer: try! ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self))
 }
 
 // MARK: - Public
@@ -34,7 +24,7 @@ extension DBWorker {
             comic.id == id
         })
 
-        return try? context?.fetch(descriptor).first
+        return try? modelContext.fetch(descriptor).first
     }
 
     /// 取得所有漫畫列表.
@@ -43,7 +33,7 @@ extension DBWorker {
             SortDescriptor(\.lastUpdate, order: .reverse),
         ])
 
-        return (try? context?.fetch(descriptor)) ?? []
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 取得依關鍵字搜尋的漫畫列表.
@@ -61,7 +51,7 @@ extension DBWorker {
             ]
         )
 
-        return (try? context?.fetch(descriptor)) ?? []
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 取得觀看過的漫畫列表.
@@ -75,7 +65,7 @@ extension DBWorker {
             SortDescriptor(\.watchDate, order: .reverse),
         ]
 
-        return (try? context?.fetch(descriptor)) ?? []
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 取得加入收藏的漫畫列表.
@@ -89,7 +79,7 @@ extension DBWorker {
             SortDescriptor(\.lastUpdate, order: .reverse),
         ]
 
-        return (try? context?.fetch(descriptor)) ?? []
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 更新漫畫集數.
@@ -98,7 +88,7 @@ extension DBWorker {
     ///   - episodes: 集數.
     func updateComicEpisodes(_ comic: Comic, episodes: [Comic.Episode]) {
         comic.episodes?.forEach {
-            context?.delete($0)
+            modelContext.delete($0)
         }
 
         comic.episodes = episodes
@@ -132,36 +122,19 @@ extension DBWorker {
 
     /// 新增或更新漫畫
     /// - Parameter anyCodables: 要新增或更新的資料.
-    func insertOrUpdateComics(_ anyCodables: [AnyCodable]) {
-        for anyCodable in anyCodables {
-            guard let id = anyCodable["id"].string, !id.isEmpty else {
-                continue
-            }
-
-            let title = anyCodable["title"].string ?? "unKnown"
-            let note = anyCodable["note"].string ?? "unKnown"
-            let lastUpdate = anyCodable["lastUpdate"].double ?? Date().timeIntervalSince1970
-            let detailCover = anyCodable["detail"]["cover"].string ?? ""
-
-            if let comic = getComicById(id) {
-                comic.title = anyCodable["title"].string ?? "unKnown"
-                comic.note = note
-                comic.lastUpdate = lastUpdate
-                comic.detail?.cover = detailCover
-                comic.updateHasNew()
+    func insertOrUpdateComics(_ comics: [Comic]) {
+        for comic in comics {
+            if let exist = getComicById(comic.id) {
+                exist.title = comic.title
+                exist.note = comic.note
+                exist.lastUpdate = comic.lastUpdate
+                exist.detail?.cover = comic.detail?.cover ?? ""
+                exist.updateHasNew()
             }
             else {
-                let comic = Comic(
-                    id: id,
-                    title: title,
-                    note: note,
-                    lastUpdate: lastUpdate,
-                    favorited: false,
-                    detail: .init(cover: detailCover, desc: "", author: ""),
-                    hasNew: true
-                )
-
-                context?.insert(comic)
+                comic.favorited = false
+                comic.hasNew = true
+                modelContext.insert(comic)
             }
         }
     }

@@ -41,7 +41,7 @@ extension EpisodeListModel {
 // MARK: - Models
 
 extension EpisodeListModel {
-    final class Episode: NSObject {
+    class Episode: NSObject, @unchecked Sendable {
         let data: Comic.Episode
         let selected: Bool
 
