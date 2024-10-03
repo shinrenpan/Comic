@@ -8,9 +8,17 @@ import AnyCodable
 import SwiftData
 import UIKit
 
-@ModelActor
-actor DBWorker {
-    static let shared = DBWorker(modelContainer: try! ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self))
+actor DBWorker: ModelActor {
+    static let shared = DBWorker()
+    nonisolated let modelContainer: ModelContainer
+    nonisolated let modelExecutor: any ModelExecutor
+    
+    init() {
+        let modelContainer = try! ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self)
+        let modelContext = ModelContext(modelContainer)
+        self.modelContainer = modelContainer
+        self.modelExecutor = DefaultSerialModelExecutor(modelContext: modelContext)
+    }
 }
 
 // MARK: - Public
