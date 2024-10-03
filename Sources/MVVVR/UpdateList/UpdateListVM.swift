@@ -50,7 +50,7 @@ private extension UpdateListVM {
     func actionLoadRemote() {
         Task {
             do {
-                let result = try await parser.result()
+                let result = try await parser.anyResult()
                 let comics: [Comic] = (AnyCodable(result).anyArray ?? []).compactMap { .init(anyCodable: $0 )}
                 await DBWorker.shared.insertOrUpdateComics(comics)
                 let comicList = await DBWorker.shared.getComicList()

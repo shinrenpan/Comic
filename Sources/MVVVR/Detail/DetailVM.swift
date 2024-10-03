@@ -57,7 +57,7 @@ private extension DetailVM {
     func actionLoadRemote() {
         Task {
             do {
-                let result = try await parser.result()
+                let result = try await parser.anyResult()
                 await handleLoadRemote(result: result)
                 // comic.episodes 無排序, 需要先排序
                 let episodes = comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []

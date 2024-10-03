@@ -53,7 +53,7 @@ private extension ReaderVM {
         
         Task {
             do {
-                let result = try await parser.result()
+                let result = try await parser.anyResult()
                 let images = try await makeImagesWithParser(result: result)
                 imageDatas = images.compactMap { .init(uri: $0.uri) }
                 
