@@ -4,12 +4,12 @@
 //  Created by Shinren Pan on 2024/5/25.
 //
 
-import Combine
+import Observation
 import Kingfisher
 import UIKit
 
-final class SettingVM: ObservableObject {
-    @Published var state = SettingModel.State.none
+@Observable final class SettingVM {
+    var state = SettingModel.State.none
 }
 
 // MARK: - Public
