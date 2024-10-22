@@ -4,14 +4,13 @@
 //  Created by Shinren Pan on 2024/6/4.
 //
 
-import Combine
+import Observation
 import UIKit
 
 final class EpisodeListVC: UIViewController {
     let vo = EpisodeListVO()
     let vm: EpisodeListVM
     let router = EpisodeListRouter()
-    var binding: Set<AnyCancellable> = .init()
     weak var delegate: EpisodeListModel.SelectedDelegate?
     lazy var dataSource = makeDataSource()
 
@@ -50,6 +49,24 @@ private extension EpisodeListVC {
     }
 
     func setupBinding() {
+        _ = withObservationTracking {
+            vm.state
+        } onChange: {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if viewIfLoaded?.window == nil { return }
+                
+                switch vm.state {
+                case .none:
+                    stateNone()
+                case let .dataLoaded(response):
+                    stateDataLoaded(response: response)
+                }
+                
+                setupBinding()
+            }
+        }
+        /*
         vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
             guard let self else { return }
             if viewIfLoaded?.window == nil { return }
@@ -60,7 +77,7 @@ private extension EpisodeListVC {
             case let .dataLoaded(response):
                 stateDataLoaded(response: response)
             }
-        }.store(in: &binding)
+        }.store(in: &binding)*/
     }
 
     func setupVO() {
