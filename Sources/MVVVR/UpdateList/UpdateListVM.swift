@@ -5,12 +5,12 @@
 //
 
 import AnyCodable
-import Combine
+import Observation
 import UIKit
 import WebParser
 
-final class UpdateListVM: ObservableObject {
-    @Published var state = UpdateListModel.State.none
+@Observable final class UpdateListVM {
+    var state = UpdateListModel.State.none
     let parser = Parser(parserConfiguration: .update())
 }
 
