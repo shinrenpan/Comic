@@ -4,14 +4,13 @@
 //  Created by Shinren Pan on 2024/5/24.
 //
 
-import Combine
+import Observation
 import UIKit
 
 final class ReaderVC: UIViewController {
     let vo = ReaderVO()
     let vm: ReaderVM
     let router = ReaderRouter()
-    var binding: Set<AnyCancellable> = .init()
     var hideBar = false
     var readDirection = ReaderModel.ReadDirection.horizontal
 
@@ -74,19 +73,25 @@ private extension ReaderVC {
     }
 
     func setupBinding() {
-        vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            guard let self else { return }
-            if viewIfLoaded?.window == nil { return }
-
-            switch state {
-            case .none:
-                stateNone()
-            case let .dataLoaded(response):
-                stateDataLoaded(response: response)
-            case let .dataLoadFail(response):
-                stateDataLoadFail(response: response)
+        _ = withObservationTracking {
+            vm.state
+        } onChange: {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if viewIfLoaded?.window == nil { return }
+                
+                switch vm.state {
+                case .none:
+                    stateNone()
+                case let .dataLoaded(response):
+                    stateDataLoaded(response: response)
+                case let .dataLoadFail(response):
+                    stateDataLoadFail(response: response)
+                }
+                
+                setupBinding()
             }
-        }.store(in: &binding)
+        }
     }
 
     func setupVO() {
