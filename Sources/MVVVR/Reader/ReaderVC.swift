@@ -244,19 +244,14 @@ private extension ReaderVC {
     
     func makeRatio(image: UIImage?, maxWidth: CGFloat?) -> CGFloat? {
         guard let image, let maxWidth else {
-            return nil
+            return 1
         }
         
         guard image.size.width > 0, image.size.height > 0 else {
-            return nil
+            return 1
         }
         
-        if image.size.width > maxWidth {
-            return maxWidth / image.size.width
-        }
-        else {
-            return image.size.width / maxWidth
-        }
+        return maxWidth / image.size.width
     }
     
     // MARK: - Do Something
@@ -284,6 +279,8 @@ private extension ReaderVC {
     }
     
     func doChangeReadDirection() {
+        vm.imageDatas.forEach { $0.image = nil }
+        
         switch readDirection {
         case .horizontal:
             readDirection = .vertical
@@ -307,14 +304,18 @@ extension ReaderVC: UICollectionViewDataSource {
         let data = vm.imageDatas[indexPath.item]
         
         cell.callback = {
-            if collectionView.indexPathsForVisibleItems.contains(indexPath) {
-                UIView.setAnimationsEnabled(false)
-                collectionView.reloadItems(at: [indexPath])
-                UIView.setAnimationsEnabled(true)
-            }
+            data.image = cell.imgView.image
+            UIView.setAnimationsEnabled(false)
+            collectionView.reloadItems(at: [indexPath])
+            UIView.setAnimationsEnabled(true)
         }
         
-        cell.reloadUI(uri: data.uri)
+        if let image = data.image {
+            cell.imgView.image = image
+        }
+        else {
+            cell.reloadUI(uri: data.uri)
+        }
         
         return cell
     }
