@@ -303,11 +303,13 @@ extension ReaderVC: UICollectionViewDataSource {
         let cell = collectionView.reuseCell(ReaderCell.self, for: indexPath)
         let data = vm.imageDatas[indexPath.item]
         
-        cell.callback = {
-            data.image = cell.imgView.image
-            UIView.setAnimationsEnabled(false)
-            collectionView.reloadItems(at: [indexPath])
-            UIView.setAnimationsEnabled(true)
+        cell.callback = { image in
+            DispatchQueue.main.async {
+                data.image = image
+                UIView.setAnimationsEnabled(false)
+                collectionView.reloadItems(at: [indexPath])
+                UIView.setAnimationsEnabled(true)
+            }
         }
         
         if let image = data.image {
