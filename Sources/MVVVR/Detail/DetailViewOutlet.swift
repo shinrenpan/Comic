@@ -12,7 +12,7 @@ extension Detail {
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
             .setup(\.backgroundColor, value: .white)
         
-        let header = DetailHeader()
+        let header = Header()
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
             .setup(\.backgroundColor, value: .white)
         
