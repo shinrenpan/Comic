@@ -86,7 +86,7 @@ private extension AppDelegate {
     func makeRootVC() -> UIViewController {
         let result = TabBarController()
 
-        let updateVC = UpdateListVC()
+        let updateVC = Update.ViewController()
         updateVC.tabBarItem = .init(title: "更新列表", image: .init(systemName: "list.bullet"), tag: 0)
 
         let favoriteVC = Favorite.ViewController()

@@ -7,15 +7,15 @@
 import UIKit
 import WebParser
 
-enum UpdateListModel {
+extension Update {
+    // MARK: - Type Alias
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Comic>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Comic>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
-}
-
-// MARK: - Action
-
-extension UpdateListModel {
+    
+    // MARK: - Action / Request
+    
     enum Action {
         case loadCache
         case loadRemote
@@ -35,11 +35,9 @@ extension UpdateListModel {
     struct RemoveFavoriteRequest {
         let comic: Comic
     }
-}
-
-// MARK: - State
-
-extension UpdateListModel {
+    
+    // NARK: - State / Response
+    
     enum State {
         case none
         case cacheLoaded(response: CacheLoadedResponse)
