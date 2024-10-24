@@ -6,8 +6,7 @@
 
 import UIKit
 
-@main
-class AppDelegate: UIResponder {
+@main class AppDelegate: UIResponder {
     var window: UIWindow?
 
     override init() {
@@ -15,29 +14,10 @@ class AppDelegate: UIResponder {
         setupBinding()
         setupAppearance()
     }
-}
+    
+    // MARK: - Setup Something
 
-// MARK: - UIApplicationDelegate
-
-extension AppDelegate: UIApplicationDelegate {
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
-        let bounds = UIScreen.main.bounds
-        let window = UIWindow(frame: bounds)
-        window.backgroundColor = .white
-        window.rootViewController = makeRootVC()
-        window.makeKeyAndVisible()
-        self.window = window
-
-        return true
-    }
-}
-
-// MARK: - Private
-
-private extension AppDelegate {
-    // MARK: Setup Something
-
-    func setupBinding() {
+    private func setupBinding() {
         NotificationCenter.default.addObserver(forName: .showLoading, object: nil, queue: .main) { [weak self] notify in
             LoadingView.hide()
 
@@ -51,7 +31,7 @@ private extension AppDelegate {
         }
     }
 
-    func setupAppearance() {
+    private func setupAppearance() {
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithDefaultBackground()
         UINavigationBar.appearance().standardAppearance = navAppearance
@@ -67,7 +47,7 @@ private extension AppDelegate {
 
     // MARK: - Show Something
 
-    func showLoadingView(view: LoadingView) {
+    private func showLoadingView(view: LoadingView) {
         guard let window else { return }
 
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -80,11 +60,11 @@ private extension AppDelegate {
             view.bottomAnchor.constraint(equalTo: window.bottomAnchor),
         ])
     }
-
+    
     // MARK: - Make Something
 
-    func makeRootVC() -> UIViewController {
-        let result = TabBarController()
+    private func makeRootVC() -> UIViewController {
+        let result = CustomTab.ViewController()
 
         let updateVC = Update.ViewController()
         updateVC.tabBarItem = .init(title: "更新列表", image: .init(systemName: "list.bullet"), tag: 0)
@@ -106,5 +86,20 @@ private extension AppDelegate {
         ]
 
         return result
+    }
+}
+
+// MARK: - UIApplicationDelegate
+
+extension AppDelegate: UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        let bounds = UIScreen.main.bounds
+        let window = UIWindow(frame: bounds)
+        window.backgroundColor = .white
+        window.rootViewController = makeRootVC()
+        window.makeKeyAndVisible()
+        self.window = window
+
+        return true
     }
 }

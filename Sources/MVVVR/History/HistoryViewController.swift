@@ -209,7 +209,7 @@ extension History.ViewController: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension History.ViewController: ScrollToTopable {
+extension History.ViewController: CustomTab.ScrollToTopable {
     func scrollToTop() {
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)

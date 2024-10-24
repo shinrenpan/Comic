@@ -166,7 +166,7 @@ extension Favorite.ViewController: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension Favorite.ViewController: ScrollToTopable {
+extension Favorite.ViewController: CustomTab.ScrollToTopable {
     func scrollToTop() {
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)

@@ -293,7 +293,7 @@ extension Update.ViewController: UISearchResultsUpdating {
 
 // MARK: - ScrollToTopable
 
-extension Update.ViewController: ScrollToTopable {
+extension Update.ViewController: CustomTab.ScrollToTopable {
     func scrollToTop() {
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)
