@@ -6,24 +6,24 @@
 
 import UIKit
 
-final class ReaderRouter {
-    weak var vc: ReaderVC?
-}
-
-// MARK: - Public
-
-extension ReaderRouter {
-    func showEpisodePicker(comic: Comic) {
-        let list = EpisodeListVC(comic: comic)
-        list.delegate = vc
-
-        let to = UINavigationController(rootViewController: list)
+extension Reader {
+    final class Router {
+        weak var vc: ViewController?
         
-        if let sheet = to.sheetPresentationController {
-            sheet.detents = [.medium()]
-            sheet.prefersGrabberVisible = true
-        }
+        // MARK: - Public
+        
+        func showEpisodePicker(comic: Comic) {
+            let list = EpisodeListVC(comic: comic)
+            list.delegate = vc
 
-        vc?.present(to, animated: true)
+            let to = UINavigationController(rootViewController: list)
+            
+            if let sheet = to.sheetPresentationController {
+                sheet.detents = [.medium()]
+                sheet.prefersGrabberVisible = true
+            }
+
+            vc?.present(to, animated: true)
+        }
     }
 }

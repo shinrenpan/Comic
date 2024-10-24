@@ -13,7 +13,7 @@ extension Detail {
         // MARK: - Public
         
         func toReader(comic: Comic, episode: Comic.Episode) {
-            let to = ReaderVC(comic: comic, episode: episode)
+            let to = Reader.ViewController(comic: comic, episode: episode)
             to.hidesBottomBarWhenPushed = true
             vc?.navigationController?.show(to, sender: nil)
         }
