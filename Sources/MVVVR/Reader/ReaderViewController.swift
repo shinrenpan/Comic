@@ -354,9 +354,9 @@ extension Reader.ViewController: UICollectionViewDelegateFlowLayout {
 
 // MARK: - EpisodeListModels.SelectedDelegate
 
-extension Reader.ViewController: EpisodeListModel.SelectedDelegate {
-    func episodeList(list: EpisodeListVC, selected episode: Comic.Episode) {
-        list.dismiss(animated: true) {
+extension Reader.ViewController: EpisodePicker.Delegate {
+    func picker(picker: EpisodePicker.ViewController, selected episode: Comic.Episode) {
+        picker.dismiss(animated: true) {
             self.doChangeEpisode(episode: episode)
         }
     }

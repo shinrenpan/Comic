@@ -6,6 +6,8 @@
 
 import UIKit
 
-final class EpisodeListRouter {
-    weak var vc: EpisodeListVC?
+extension EpisodePicker {
+    final class Router {
+        weak var vc: ViewController?
+    }
 }

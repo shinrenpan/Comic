@@ -6,28 +6,27 @@
 
 import UIKit
 
-enum EpisodeListModel {
+extension EpisodePicker {
+    // MARK: - Delegate
+    
+    protocol Delegate: UIViewController {
+        func picker(picker: ViewController, selected episode: Comic.Episode)
+    }
+    
+    // MARK: - Type Alias
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Episode>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Episode>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Episode>
 
-    /// Delegate for handling selected episode
-    protocol SelectedDelegate: UIViewController {
-        func episodeList(list: EpisodeListVC, selected episode: Comic.Episode)
-    }
-}
-
-// MARK: - Action
-
-extension EpisodeListModel {
+    // MARK: - Action / Request
+    
     enum Action {
         case loadData
     }
-}
-
-// MARK: - State
-
-extension EpisodeListModel {
+    
+    // MARK: - State / Response
+    
     enum State {
         case none
         case dataLoaded(response: DataLoadedResponse)
@@ -36,11 +35,9 @@ extension EpisodeListModel {
     struct DataLoadedResponse {
         let episodes: [Episode]
     }
-}
-
-// MARK: - Models
-
-extension EpisodeListModel {
+    
+    // MARK: - Models
+    
     final class Episode: NSObject {
         let data: Comic.Episode
         let selected: Bool
