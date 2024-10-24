@@ -37,7 +37,7 @@ extension Setting {
         private func setupBinding() {
             _ = withObservationTracking {
                 vm.state
-            } onChange: {
+            } onChange: { [weak self] in
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if viewIfLoaded?.window == nil { return }
