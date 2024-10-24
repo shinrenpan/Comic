@@ -4,11 +4,11 @@
 //  Created by Shinren Pan on 2024/5/23.
 //
 
-import Combine
+import Observation
 import UIKit
 
-final class HistoryListVM: ObservableObject {
-    @Published var state = HistoryListModel.State.none
+@Observable final class HistoryListVM {
+    var state = HistoryListModel.State.none
 }
 
 // MARK: - Public

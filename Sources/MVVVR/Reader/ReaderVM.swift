@@ -5,12 +5,12 @@
 //
 
 import AnyCodable
-import Combine
+import Observation
 import UIKit
 import WebParser
 
-final class ReaderVM: ObservableObject {
-    @Published var state = ReaderModel.State.none
+@Observable final class ReaderVM {
+    var state = ReaderModel.State.none
     let comic: Comic
     var currentEpisode: Comic.Episode
     let parser: Parser

@@ -4,14 +4,13 @@
 //  Created by Shinren Pan on 2024/5/24.
 //
 
-import Combine
+import Observation
 import UIKit
 
 final class ReaderVC: UIViewController {
     let vo = ReaderVO()
     let vm: ReaderVM
     let router = ReaderRouter()
-    var binding: Set<AnyCancellable> = .init()
     var hideBar = false
     var readDirection = ReaderModel.ReadDirection.horizontal
 
@@ -74,19 +73,25 @@ private extension ReaderVC {
     }
 
     func setupBinding() {
-        vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            guard let self else { return }
-            if viewIfLoaded?.window == nil { return }
-
-            switch state {
-            case .none:
-                stateNone()
-            case let .dataLoaded(response):
-                stateDataLoaded(response: response)
-            case let .dataLoadFail(response):
-                stateDataLoadFail(response: response)
+        _ = withObservationTracking {
+            vm.state
+        } onChange: {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if viewIfLoaded?.window == nil { return }
+                
+                switch vm.state {
+                case .none:
+                    stateNone()
+                case let .dataLoaded(response):
+                    stateDataLoaded(response: response)
+                case let .dataLoadFail(response):
+                    stateDataLoadFail(response: response)
+                }
+                
+                setupBinding()
             }
-        }.store(in: &binding)
+        }
     }
 
     func setupVO() {
@@ -239,19 +244,14 @@ private extension ReaderVC {
     
     func makeRatio(image: UIImage?, maxWidth: CGFloat?) -> CGFloat? {
         guard let image, let maxWidth else {
-            return nil
+            return 1
         }
         
         guard image.size.width > 0, image.size.height > 0 else {
-            return nil
+            return 1
         }
         
-        if image.size.width > maxWidth {
-            return maxWidth / image.size.width
-        }
-        else {
-            return image.size.width / maxWidth
-        }
+        return maxWidth / image.size.width
     }
     
     // MARK: - Do Something
@@ -279,6 +279,8 @@ private extension ReaderVC {
     }
     
     func doChangeReadDirection() {
+        vm.imageDatas.forEach { $0.image = nil }
+        
         switch readDirection {
         case .horizontal:
             readDirection = .vertical
@@ -301,15 +303,21 @@ extension ReaderVC: UICollectionViewDataSource {
         let cell = collectionView.reuseCell(ReaderCell.self, for: indexPath)
         let data = vm.imageDatas[indexPath.item]
         
-        cell.callback = {
-            if collectionView.indexPathsForVisibleItems.contains(indexPath) {
+        cell.callback = { image in
+            DispatchQueue.main.async {
+                data.image = image
                 UIView.setAnimationsEnabled(false)
                 collectionView.reloadItems(at: [indexPath])
                 UIView.setAnimationsEnabled(true)
             }
         }
         
-        cell.reloadUI(uri: data.uri)
+        if let image = data.image {
+            cell.imgView.image = image
+        }
+        else {
+            cell.reloadUI(uri: data.uri)
+        }
         
         return cell
     }

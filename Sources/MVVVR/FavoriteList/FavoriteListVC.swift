@@ -4,7 +4,7 @@
 //  Created by Shinren Pan on 2024/5/22.
 //
 
-import Combine
+import Observation
 import SwiftUI
 import UIKit
 
@@ -12,7 +12,6 @@ final class FavoriteListVC: UIViewController {
     let vo = FavoriteListVO()
     let vm = FavoriteListVM()
     let router = FavoriteListRouter()
-    var binding: Set<AnyCancellable> = .init()
     lazy var dataSource = makeDataSource()
 
     override func viewDidLoad() {
@@ -40,19 +39,25 @@ private extension FavoriteListVC {
     }
 
     func setupBinding() {
-        vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            guard let self else { return }
-            if viewIfLoaded?.window == nil { return }
-
-            switch state {
-            case .none:
-                stateNone()
-            case let .cacheLoaded(response):
-                stateCacheLoaded(response: response)
-            case let .favoriteRemoved(response):
-                stateFavoriteRemoved(response: response)
+        _ = withObservationTracking {
+            vm.state
+        } onChange: {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if viewIfLoaded?.window == nil { return }
+                
+                switch vm.state {
+                case .none:
+                    stateNone()
+                case let .cacheLoaded(response):
+                    stateCacheLoaded(response: response)
+                case let .favoriteRemoved(response):
+                    stateFavoriteRemoved(response: response)
+                }
+                
+                setupBinding()
             }
-        }.store(in: &binding)
+        }
     }
 
     func setupVO() {

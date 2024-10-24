@@ -4,14 +4,13 @@
 //  Created by Shinren Pan on 2024/5/25.
 //
 
-import Combine
+import Observation
 import UIKit
 
 final class SettingVC: UIViewController {
     let vo = SettingVO()
     let vm = SettingVM()
     let router = SettingRouter()
-    var binding: Set<AnyCancellable> = .init()
     lazy var dataSource = makeDataSource()
 
     override func viewDidLoad() {
@@ -39,17 +38,23 @@ private extension SettingVC {
     }
 
     func setupBinding() {
-        vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            guard let self else { return }
-            if viewIfLoaded?.window == nil { return }
-
-            switch state {
-            case .none:
-                stateNone()
-            case let .dataLoaded(response):
-                stateDataLoaded(response: response)
+        _ = withObservationTracking {
+            vm.state
+        } onChange: {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if viewIfLoaded?.window == nil { return }
+                
+                switch vm.state {
+                case .none:
+                    stateNone()
+                case let .dataLoaded(response):
+                    stateDataLoaded(response: response)
+                }
+                
+                setupBinding()
             }
-        }.store(in: &binding)
+        }
     }
 
     func setupVO() {

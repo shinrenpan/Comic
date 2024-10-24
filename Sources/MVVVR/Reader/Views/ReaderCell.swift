@@ -19,7 +19,7 @@ final class ReaderCell: UICollectionViewCell {
         return result
     }
 
-    var callback: (() -> Void)?
+    var callback: ((UIImage) -> Void)?
     
     override init(frame: CGRect) {
         super.init(frame: .zero)
@@ -46,9 +46,11 @@ extension ReaderCell {
                 .processor(DownsamplingImageProcessor(size: imgView.frame.size)),
                 .scaleFactor(UIScreen.main.scale),
                 .cacheOriginalImage,
-            ]) { [weak self] _ in
+            ]) { [weak self] result in
                 guard let self else { return }
-                callback?()
+                if case let .success(value) = result {
+                    callback?(value.image)
+                }
             }
     }
 }
