@@ -89,7 +89,7 @@ private extension AppDelegate {
         let updateVC = UpdateListVC()
         updateVC.tabBarItem = .init(title: "更新列表", image: .init(systemName: "list.bullet"), tag: 0)
 
-        let favoriteVC = FavoriteListVC()
+        let favoriteVC = Favorite.ViewController()
         favoriteVC.tabBarItem = .init(title: "收藏列表", image: .init(systemName: "star"), tag: 1)
 
         let historyVC = HistoryListVC()

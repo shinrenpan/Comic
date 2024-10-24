@@ -1,43 +1,41 @@
 //
-//  FavoriteListModel.swift
+//  FavoriteModel.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-enum FavoriteListModel {
+extension Favorite {
+    // MARK: - Type Alias
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Comic>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Comic>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
-}
 
-// MARK: - Action
+    // MARK: - Action / Request
 
-extension FavoriteListModel {
     enum Action {
         case loadCache
         case removeFavorite(request: RemoveFavoriteRequest)
     }
-    
+
     struct RemoveFavoriteRequest {
         let comic: Comic
     }
-}
 
-// MARK: - State
+    // MARK: - State / Response
 
-extension FavoriteListModel {
     enum State {
         case none
         case cacheLoaded(response: CacheLoadedResponse)
         case favoriteRemoved(response: FavoriteRemovedResponse)
     }
-    
+
     struct CacheLoadedResponse {
         let comics: [Comic]
     }
-    
+
     struct FavoriteRemovedResponse {
         let comic: Comic
     }
