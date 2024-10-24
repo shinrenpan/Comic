@@ -6,15 +6,15 @@
 
 import UIKit
 
-enum HistoryListModel {
+extension History {
+    // MARK: - Type Alias
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Comic>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Comic>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
-}
-
-// MARK: - Action
-
-extension HistoryListModel {
+    
+    // MARK: - Action / Request
+    
     enum Action {
         case loadCache
         case addFavorite(request: AddFavoriteRequest)
@@ -33,11 +33,9 @@ extension HistoryListModel {
     struct RemoveHistoryRequest {
         let comic: Comic
     }
-}
-
-// MARK: - State
-
-extension HistoryListModel {
+    
+    // MARK: - State / Response
+    
     enum State {
         case none
         case cacheLoaded(response: CacheLoadedResponse)
