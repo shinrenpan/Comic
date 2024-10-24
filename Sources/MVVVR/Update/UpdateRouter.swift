@@ -13,7 +13,7 @@ extension Update {
         // MARK: - Public
         
         func toDetail(comic: Comic) {
-            let to = DetailVC(comic: comic)
+            let to = Detail.ViewController(comic: comic)
             to.hidesBottomBarWhenPushed = true
             vc?.navigationController?.show(to, sender: nil)
         }

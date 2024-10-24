@@ -6,25 +6,23 @@
 
 import UIKit
 
-enum DetailModel {
+extension Detail {
+    // MARK: - Type Alias
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Episode>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Episode>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Episode>
-}
-
-// MARK: - Action
-
-extension DetailModel {
+    
+    // MARK: - Action / Request
+    
     enum Action {
         case loadCache
         case loadRemote
         case tapFavorite
     }
-}
-
-// MARK: - State
-
-extension DetailModel {
+    
+    // MARK: - State / Response
+    
     enum State {
         case none
         case cacheLoaded(response: CacheLoadedResponse)
@@ -45,11 +43,9 @@ extension DetailModel {
     struct FavoriteUpdatedResponse {
         let comic: Comic
     }
-}
-
-// MARK: - Models
-
-extension DetailModel {
+    
+    // MARK: - Models
+    
     final class Episode: NSObject {
         let data: Comic.Episode
         let selected: Bool
