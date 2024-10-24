@@ -4,11 +4,11 @@
 //  Created by Shinren Pan on 2024/5/22.
 //
 
-import Combine
+import Observation
 import UIKit
 
-final class FavoriteListVM: ObservableObject {
-    @Published var state = FavoriteListModel.State.none
+@Observable final class FavoriteListVM {
+    var state = FavoriteListModel.State.none
 }
 
 // MARK: - Public

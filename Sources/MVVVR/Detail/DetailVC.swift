@@ -4,14 +4,13 @@
 //  Created by Shinren Pan on 2024/5/22.
 //
 
-import Combine
+import Observation
 import UIKit
 
 final class DetailVC: UIViewController {
     let vo = DetailVO()
     let vm: DetailVM
     let router = DetailRouter()
-    var binding: Set<AnyCancellable> = .init()
     var firstInit = true
     lazy var dataSource = makeDataSource()
     
@@ -51,21 +50,27 @@ private extension DetailVC {
     }
 
     func setupBinding() {
-        vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            guard let self else { return }
-            if viewIfLoaded?.window == nil { return }
-
-            switch state {
-            case .none:
-                stateNone()
-            case let .cacheLoaded(response):
-                stateCacheLoaded(response: response)
-            case let .remoteLoaded(response):
-                stateRemoteLoaded(response: response)
-            case let .favoriteUpdated(response):
-                stateFavoriteUpdated(response: response)
+        _ = withObservationTracking {
+            vm.state
+        } onChange: {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if viewIfLoaded?.window == nil { return }
+                
+                switch vm.state {
+                case .none:
+                    stateNone()
+                case let .cacheLoaded(response):
+                    stateCacheLoaded(response: response)
+                case let .remoteLoaded(response):
+                    stateRemoteLoaded(response: response)
+                case let .favoriteUpdated(response):
+                    stateFavoriteUpdated(response: response)
+                }
+                
+                setupBinding()
             }
-        }.store(in: &binding)
+        }
     }
 
     func setupVO() {

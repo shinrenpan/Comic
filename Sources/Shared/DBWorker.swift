@@ -8,18 +8,17 @@ import AnyCodable
 import SwiftData
 import UIKit
 
-actor DBWorker {
+actor DBWorker: ModelActor {
     static let shared = DBWorker()
-    private var container: ModelContainer?
-    private var context: ModelContext?
-
-    private init() {
-        self.container = try? ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self)
-
-        if let container {
-            self.context = .init(container)
-            context?.autosaveEnabled = true
-        }
+    nonisolated let modelContainer: ModelContainer
+    nonisolated let modelExecutor: any ModelExecutor
+    
+    init() {
+        let modelContainer = try! ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self)
+        let modelContext = ModelContext(modelContainer)
+        self.modelContainer = modelContainer
+        self.modelExecutor = DefaultSerialModelExecutor(modelContext: modelContext)
+        self.modelExecutor.modelContext.autosaveEnabled = true
     }
 }
 
@@ -34,7 +33,7 @@ extension DBWorker {
             comic.id == id
         })
 
-        return try? context?.fetch(descriptor).first
+        return try? modelContext.fetch(descriptor).first
     }
 
     /// 取得所有漫畫列表.
@@ -43,7 +42,7 @@ extension DBWorker {
             SortDescriptor(\.lastUpdate, order: .reverse),
         ])
 
-        return (try? context?.fetch(descriptor)) ?? []
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 取得依關鍵字搜尋的漫畫列表.
@@ -61,7 +60,7 @@ extension DBWorker {
             ]
         )
 
-        return (try? context?.fetch(descriptor)) ?? []
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 取得觀看過的漫畫列表.
@@ -75,7 +74,7 @@ extension DBWorker {
             SortDescriptor(\.watchDate, order: .reverse),
         ]
 
-        return (try? context?.fetch(descriptor)) ?? []
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 取得加入收藏的漫畫列表.
@@ -89,7 +88,7 @@ extension DBWorker {
             SortDescriptor(\.lastUpdate, order: .reverse),
         ]
 
-        return (try? context?.fetch(descriptor)) ?? []
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 
     /// 更新漫畫集數.
@@ -98,7 +97,7 @@ extension DBWorker {
     ///   - episodes: 集數.
     func updateComicEpisodes(_ comic: Comic, episodes: [Comic.Episode]) {
         comic.episodes?.forEach {
-            context?.delete($0)
+            modelContext.delete($0)
         }
 
         comic.episodes = episodes
@@ -161,7 +160,7 @@ extension DBWorker {
                     hasNew: true
                 )
 
-                context?.insert(comic)
+                modelContext.insert(comic)
             }
         }
     }

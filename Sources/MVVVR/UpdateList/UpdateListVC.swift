@@ -4,7 +4,6 @@
 //  Created by Shinren Pan on 2024/5/21.
 //
 
-import Combine
 import SwiftUI
 import UIKit
 
@@ -12,7 +11,6 @@ final class UpdateListVC: UIViewController {
     let vo = UpdateListVO()
     let vm = UpdateListVM()
     let router = UpdateListRouter()
-    var binding: Set<AnyCancellable> = .init()
     var firstInit = true
     lazy var dataSource = makeDataSource()
 
@@ -50,25 +48,31 @@ private extension UpdateListVC {
     }
 
     func setupBinding() {
-        vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            guard let self else { return }
-            if viewIfLoaded?.window == nil { return }
-
-            switch state {
-            case .none:
-                stateNone()
-            case let .cacheLoaded(response):
-                stateCacheLoaded(response: response)
-            case let .remoteLoaded(response):
-                stateRemoteLoaded(response: response)
-            case let .localSearched(response):
-                stateLocalSearched(response: response)
-            case let .favoriteAdded(response):
-                stateFavoriteAdded(response: response)
-            case let .favoriteRemoved(response):
-                stateFavoriteRemoved(response: response)
+        _ = withObservationTracking {
+            vm.state
+        } onChange: {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if viewIfLoaded?.window == nil { return }
+                
+                switch vm.state {
+                case .none:
+                    stateNone()
+                case let .cacheLoaded(response):
+                    stateCacheLoaded(response: response)
+                case let .remoteLoaded(response):
+                    stateRemoteLoaded(response: response)
+                case let .localSearched(response):
+                    stateLocalSearched(response: response)
+                case let .favoriteAdded(response):
+                    stateFavoriteAdded(response: response)
+                case let .favoriteRemoved(response):
+                    stateFavoriteRemoved(response: response)
+                }
+                
+                setupBinding()
             }
-        }.store(in: &binding)
+        }
     }
 
     func setupVO() {

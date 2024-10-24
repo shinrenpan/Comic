@@ -4,7 +4,7 @@
 //  Created by Shinren Pan on 2024/5/23.
 //
 
-import Combine
+import Observation
 import SwiftUI
 import UIKit
 
@@ -12,7 +12,6 @@ final class HistoryListVC: UIViewController {
     let vo = HistoryListVO()
     let vm = HistoryListVM()
     let router = HistoryListRouter()
-    var binding: Set<AnyCancellable> = .init()
     lazy var dataSource = makeDataSource()
 
     override func viewDidLoad() {
@@ -40,23 +39,29 @@ private extension HistoryListVC {
     }
 
     func setupBinding() {
-        vm.$state.receive(on: DispatchQueue.main).sink { [weak self] state in
-            guard let self else { return }
-            if viewIfLoaded?.window == nil { return }
-
-            switch state {
-            case .none:
-                stateNone()
-            case let .cacheLoaded(response):
-                stateCacheLoaded(response: response)
-            case let .favoriteAdded(response):
-                stateFavoriteAdded(response: response)
-            case let .favoriteRemoved(response):
-                stateFavoriteRemoved(response: response)
-            case let .historyRemoved(response):
-                stateHistoryRemoved(response: response)
+        _ = withObservationTracking {
+            vm.state
+        } onChange: {
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                if viewIfLoaded?.window == nil { return }
+                
+                switch vm.state {
+                case .none:
+                    stateNone()
+                case let .cacheLoaded(response):
+                    stateCacheLoaded(response: response)
+                case let .favoriteAdded(response):
+                    stateFavoriteAdded(response: response)
+                case let .favoriteRemoved(response):
+                    stateFavoriteRemoved(response: response)
+                case let .historyRemoved(response):
+                    stateHistoryRemoved(response: response)
+                }
+                
+                setupBinding()
             }
-        }.store(in: &binding)
+        }
     }
 
     func setupVO() {

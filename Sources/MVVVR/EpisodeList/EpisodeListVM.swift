@@ -4,11 +4,11 @@
 //  Created by Shinren Pan on 2024/6/4.
 //
 
-import Combine
+import Observation
 import UIKit
 
-final class EpisodeListVM: ObservableObject {
-    @Published var state = EpisodeListModel.State.none
+@Observable final class EpisodeListVM {
+    var state = EpisodeListModel.State.none
     let comic: Comic
 
     init(comic: Comic) {
