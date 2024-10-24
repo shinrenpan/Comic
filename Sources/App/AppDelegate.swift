@@ -95,7 +95,7 @@ private extension AppDelegate {
         let historyVC = History.ViewController()
         historyVC.tabBarItem = .init(title: "觀看紀錄", image: .init(systemName: "clock"), tag: 2)
 
-        let settingVC = SettingVC()
+        let settingVC = Setting.ViewController()
         settingVC.tabBarItem = .init(title: "設置", image: .init(systemName: "gear"), tag: 3)
 
         result.viewControllers = [

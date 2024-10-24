@@ -6,26 +6,24 @@
 
 import UIKit
 
-enum SettingModel {
+extension Setting {
+    // MARK: - Type Alias
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Item>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Item>
-    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, SettingModel.Item>
-}
-
-// MARK: - Action
-
-extension SettingModel {
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Item>
+    
+    // MARK: - Action / Request
+    
     enum Action {
         case loadData
         case cleanFavorite
         case cleanHistory
         case cleanCache
     }
-}
-
-// MARK: - State
-
-extension SettingModel {
+    
+    // MARK: - State / Response
+    
     enum State {
         case none
         case dataLoaded(response: DataLoadedResponse)
@@ -34,11 +32,9 @@ extension SettingModel {
     struct DataLoadedResponse {
         let items: [Item]
     }
-}
-
-// MARK: - Models
-
-extension SettingModel {
+    
+    // MARK: - Models
+    
     enum SettingType {
         case localData
         case favorite

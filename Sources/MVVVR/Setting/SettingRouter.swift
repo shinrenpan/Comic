@@ -6,27 +6,28 @@
 
 import UIKit
 
-final class SettingRouter {
-    weak var vc: SettingVC?
-}
+extension Setting {
+    final class Router {
+        weak var vc: ViewController?
+        
+        // MARK: - Public
+        
+        func showMenuForItem(item: Item, actions: [UIAlertAction], cell: UICollectionViewCell?) {
+            let sheet = UIAlertController(
+                title: "清除\(item.title)",
+                message: "是否確定清除\(item.title)",
+                preferredStyle: .actionSheet
+            )
 
-// MARK: - Public
+            sheet.popoverPresentationController?.sourceView = cell
+            sheet.popoverPresentationController?.permittedArrowDirections = .up
 
-extension SettingRouter {
-    func showMenuForItem(item: SettingModel.Item, actions: [UIAlertAction], cell: UICollectionViewCell?) {
-        let sheet = UIAlertController(
-            title: "清除\(item.title)",
-            message: "是否確定清除\(item.title)",
-            preferredStyle: .actionSheet
-        )
+            for action in actions {
+                sheet.addAction(action)
+            }
 
-        sheet.popoverPresentationController?.sourceView = cell
-        sheet.popoverPresentationController?.permittedArrowDirections = .up
-
-        for action in actions {
-            sheet.addAction(action)
+            vc?.present(sheet, animated: true)
         }
 
-        vc?.present(sheet, animated: true)
     }
 }
