@@ -1,19 +1,19 @@
 //
-//  DetailRouter.swift
+//  HistoryListRouter.swift
 //
-//  Created by Shinren Pan on 2024/5/22.
+//  Created by Shinren Pan on 2024/5/23.
 //
 
 import UIKit
 
-extension Detail {
+extension History {
     final class Router {
         weak var vc: ViewController?
         
         // MARK: - Public
         
-        func toReader(comic: Comic, episode: Comic.Episode) {
-            let to = Reader.ViewController(comic: comic, episode: episode)
+        func toDetail(comic: Comic) {
+            let to = Detail.ViewController(comic: comic)
             to.hidesBottomBarWhenPushed = true
             vc?.navigationController?.show(to, sender: nil)
         }
