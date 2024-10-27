@@ -5,12 +5,14 @@
 //
 
 import UIKit
+import WebKit
 
 @main class AppDelegate: UIResponder {
     var window: UIWindow?
 
     override init() {
         super.init()
+        doCleanCookies()
         setupBinding()
         setupAppearance()
     }
@@ -45,6 +47,18 @@ import UIKit
         UITabBar.appearance().scrollEdgeAppearance = barAppearance.copy()
     }
 
+    // MARK: - Do Something
+    
+    private func doCleanCookies() {
+        HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+        
+        WKWebsiteDataStore.default().fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
+            records.forEach { record in
+                WKWebsiteDataStore.default().removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
+            }
+        }
+    }
+    
     // MARK: - Show Something
 
     private func showLoadingView(view: LoadingView) {
