@@ -7,15 +7,15 @@
 import UIKit
 import WebParser
 
-enum ReaderModel {
+extension Reader {
+    // MARK: - Type Alias
+    
     typealias DataSource = UICollectionViewDiffableDataSource<Int, String>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, String>
-    typealias CellRegistration = UICollectionView.CellRegistration<ReaderCell, String>
-}
-
-// MARK: - Action
-
-extension ReaderModel {
+    typealias CellRegistration = UICollectionView.CellRegistration<Cell, String>
+    
+    // MARK: - Action / Request
+    
     enum Action {
         case loadData(request: LoadDataRequest)
         case loadPrev
@@ -25,11 +25,9 @@ extension ReaderModel {
     struct LoadDataRequest {
         let epidose: Comic.Episode?
     }
-}
-
-// MARK: - State
-
-extension ReaderModel {
+    
+    // MARK: - State / Response
+    
     enum State {
         case none
         case dataLoaded(response: DataLoadedResponse)
@@ -45,11 +43,9 @@ extension ReaderModel {
     struct ImageLoadFailResponse {
         let error: LoadImageError
     }
-}
-
-// MARK: - Models
-
-extension ReaderModel {
+    
+    // MARK: - Models
+    
     enum ReadDirection {
         case horizontal
         case vertical

@@ -1,47 +1,39 @@
 //
-//  DetailModel.swift
+//  EpisodeListModel.swift
 //
-//  Created by Shinren Pan on 2024/5/22.
+//  Created by Shinren Pan on 2024/6/4.
 //
 
 import UIKit
 
-extension Detail {
+extension EpisodePicker {
+    // MARK: - Delegate
+    
+    protocol Delegate: UIViewController {
+        func picker(picker: ViewController, selected episode: Comic.Episode)
+    }
+    
     // MARK: - Type Alias
     
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Episode>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Episode>
     typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Episode>
-    
+
     // MARK: - Action / Request
     
     enum Action {
-        case loadCache
-        case loadRemote
-        case tapFavorite
+        case loadData
     }
     
     // MARK: - State / Response
     
     enum State {
         case none
-        case cacheLoaded(response: CacheLoadedResponse)
-        case remoteLoaded(response: RemoteLoadedResponse)
-        case favoriteUpdated(response: FavoriteUpdatedResponse)
+        case dataLoaded(response: DataLoadedResponse)
     }
     
-    struct CacheLoadedResponse {
-        let comic: Comic
+    struct DataLoadedResponse {
         let episodes: [Episode]
-    }
-    
-    struct RemoteLoadedResponse {
-        let comic: Comic
-        let episodes: [Episode]
-    }
-    
-    struct FavoriteUpdatedResponse {
-        let comic: Comic
     }
     
     // MARK: - Models
