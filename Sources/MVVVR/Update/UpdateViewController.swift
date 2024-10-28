@@ -9,11 +9,11 @@ import UIKit
 
 extension Update {
     final class ViewController: UIViewController {
-        let vo = ViewOutlet()
-        let vm = ViewModel()
-        let router = Router()
         var firstInit = true
-        lazy var dataSource = makeDataSource()
+        private let vo = ViewOutlet()
+        private let vm = ViewModel()
+        private let router = Router()
+        private lazy var dataSource = makeDataSource()
         
         override func viewDidLoad() {
             super.viewDidLoad()
@@ -22,8 +22,8 @@ extension Update {
             setupVO()
         }
         
-        override func viewIsAppearing(_ animated: Bool) {
-            super.viewIsAppearing(animated)
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
             doSearchOrLoadCache()
         }
         
@@ -55,16 +55,10 @@ extension Update {
                     switch vm.state {
                     case .none:
                         stateNone()
-                    case let .cacheLoaded(response):
-                        stateCacheLoaded(response: response)
-                    case let .remoteLoaded(response):
-                        stateRemoteLoaded(response: response)
+                    case let .dataLoaded(response):
+                        stateDataLoaded(response: response)
                     case let .localSearched(response):
                         stateLocalSearched(response: response)
-                    case let .favoriteAdded(response):
-                        stateFavoriteAdded(response: response)
-                    case let .favoriteRemoved(response):
-                        stateFavoriteRemoved(response: response)
                     }
                     
                     setupBinding()
@@ -91,29 +85,17 @@ extension Update {
 
         private func stateNone() {}
 
-        private func stateCacheLoaded(response: CacheLoadedResponse) {
+        private func stateDataLoaded(response: DataLoadedResponse) {
+            hideLoading()
+            
             let comics = response.comics
             var snapshot = Snapshot()
             snapshot.appendSections([0])
             snapshot.appendItems(comics, toSection: 0)
-
+            
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
-                updateCacheLoadedUI()
-            }
-        }
-
-        private func stateRemoteLoaded(response: RemoteLoadedResponse) {
-            LoadingView.hide()
-
-            let comics = response.comics
-            var snapshot = Snapshot()
-            snapshot.appendSections([0])
-            snapshot.appendItems(comics, toSection: 0)
-
-            dataSource.apply(snapshot) { [weak self] in
-                guard let self else { return }
-                updateRemoteLoadedUI(isEmpty: comics.isEmpty)
+                updateAfterDataLoaded()
             }
         }
 
@@ -125,49 +107,26 @@ extension Update {
 
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
-                updateLocalSearchedUI(isEmpty: comics.isEmpty)
+                showEmptyContent(isEmpty: comics.isEmpty, text: "找不到漫畫")
             }
         }
 
-        private func stateFavoriteAdded(response: FavoriteAddedResponse) {
-            let comic = response.comic
-            var snapshot = dataSource.snapshot()
-            snapshot.reloadItems([comic])
-            dataSource.apply(snapshot)
-        }
-
-        private func stateFavoriteRemoved(response: FavoriteRemovedResponse) {
-            let comic = response.comic
-            var snapshot = dataSource.snapshot()
-            snapshot.reloadItems([comic])
-            dataSource.apply(snapshot)
-        }
-        
         // MARK: - Update Something
         
-        private func updateCacheLoadedUI() {
-            contentUnavailableConfiguration = nil
-
+        private func updateAfterDataLoaded() {
             if firstInit {
-                LoadingView.show()
                 firstInit = false
+                showLoading(onWindow: true)
                 vm.doAction(.loadRemote)
             }
-        }
-        
-        private func updateRemoteLoadedUI(isEmpty: Bool) {
-            if isEmpty {
-                var content = Self.makeError()
-                content.buttonProperties.primaryAction = makeReloadAction()
-                contentUnavailableConfiguration = content
-            }
             else {
-                contentUnavailableConfiguration = nil
+                if dataSource.snapshot().itemIdentifiers.isEmpty {
+                    showErrorContent(action: makeReloadAction())
+                }
+                else {
+                    contentUnavailableConfiguration = nil
+                }
             }
-        }
-        
-        private func updateLocalSearchedUI(isEmpty: Bool) {
-            contentUnavailableConfiguration = isEmpty ? Self.makeEmpty(text: "找不到漫畫") : nil
         }
         
         // MARK: - Make Something
@@ -202,14 +161,14 @@ extension Update {
             }
         }
         
-        private func makeAddFavoriteAction(comic: Comic) -> UIContextualAction {
+        private func makeAddFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
                 guard let self else { return }
                 vm.doAction(.addFavorite(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .blue)
         }
         
-        private func makeRemoveFavoriteAction(comic: Comic) -> UIContextualAction {
+        private func makeRemoveFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
                 guard let self else { return }
                 vm.doAction(.removeFavorite(request: .init(comic: comic)))
@@ -219,7 +178,7 @@ extension Update {
         private func makeCell() -> CellRegistration {
             .init { cell, _, comic in
                 cell.contentConfiguration = UIHostingConfiguration {
-                    CellContentView(comic: comic, cellType: .update)
+                    Cell(comic: comic)
                 }
             }
         }
@@ -240,7 +199,7 @@ extension Update {
                 navigationItem.searchController?.isActive = false
                 vo.list.panGestureRecognizer.isEnabled = false // 停止下拉更新
                 vo.list.refreshControl?.endRefreshing()
-                LoadingView.show()
+                showLoading(onWindow: true)
                 vm.doAction(.loadRemote)
                 vo.list.panGestureRecognizer.isEnabled = true
             }
@@ -253,7 +212,7 @@ extension Update {
                 vm.doAction(.localSearch(request: .init(keywords: keywords)))
             }
             else {
-                vm.doAction(.loadCache)
+                vm.doAction(.loadData)
             }
         }
 
@@ -279,7 +238,7 @@ extension Update.ViewController: UICollectionViewDelegate {
             return
         }
 
-        router.toDetail(comic: comic)
+        router.toDetail(comicId: comic.id)
     }
 }
 
@@ -295,6 +254,8 @@ extension Update.ViewController: UISearchResultsUpdating {
 
 extension Update.ViewController: CustomTab.ScrollToTopable {
     func scrollToTop() {
+        if dataSource.snapshot().itemIdentifiers.isEmpty { return }
+        
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)
     }

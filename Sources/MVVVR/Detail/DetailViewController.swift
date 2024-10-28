@@ -9,14 +9,14 @@ import UIKit
 
 extension Detail {
     final class ViewController: UIViewController {
-        let vo = ViewOutlet()
-        let vm: ViewModel
-        let router = Router()
-        var firstInit = true
-        lazy var dataSource = makeDataSource()
+        private let vo = ViewOutlet()
+        private let vm: ViewModel
+        private let router = Router()
+        private var firstInit = true
+        private lazy var dataSource = makeDataSource()
         
-        init(comic: Comic) {
-            self.vm = .init(comic: comic)
+        init(comicId: String) {
+            self.vm = .init(comicId: comicId)
             super.init(nibName: nil, bundle: nil)
         }
         
@@ -32,9 +32,9 @@ extension Detail {
             setupVO()
         }
         
-        override func viewIsAppearing(_ animated: Bool) {
-            super.viewIsAppearing(animated)
-            vm.doAction(.loadCache)
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            vm.doAction(.loadData)
         }
         
         // MARK: - Setup Something
@@ -57,12 +57,8 @@ extension Detail {
                     switch vm.state {
                     case .none:
                         stateNone()
-                    case let .cacheLoaded(response):
-                        stateCacheLoaded(response: response)
-                    case let .remoteLoaded(response):
-                        stateRemoteLoaded(response: response)
-                    case let .favoriteUpdated(response):
-                        stateFavoriteUpdated(response: response)
+                    case let .dataLoaded(response):
+                        stateDataLoaded(response: response)
                     }
                     
                     setupBinding()
@@ -93,9 +89,16 @@ extension Detail {
 
         private func stateNone() {}
 
-        private func stateCacheLoaded(response: CacheLoadedResponse) {
-            vo.reloadHeader(comic: response.comic)
-            vo.reloadFavoriteUI(comic: response.comic)
+        private func stateDataLoaded(response: DataLoadedResponse) {
+            hideLoading()
+            
+            guard let comic = response.comic else {
+                showErrorContent(action: makeReloadAction())
+                return
+            }
+            
+            vo.reloadHeader(comic: comic)
+            vo.reloadFavoriteUI(comic: comic)
             
             let episodes = response.episodes
             var snapshot = Snapshot()
@@ -104,36 +107,16 @@ extension Detail {
             
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
-                updateAfterCacheLoaded()
+                updateAfterDataLoaded()
             }
         }
 
-        private func stateRemoteLoaded(response: RemoteLoadedResponse) {
-            LoadingView.hide()
-            vo.reloadHeader(comic: response.comic)
-            vo.reloadFavoriteUI(comic: response.comic)
-            
-            let episodes = response.episodes
-            var snapshot = Snapshot()
-            snapshot.appendSections([0])
-            snapshot.appendItems(episodes, toSection: 0)
-
-            dataSource.apply(snapshot) { [weak self] in
-                guard let self else { return }
-                updateAfterRemoveLoaded(isEmpty: episodes.isEmpty)
-            }
-        }
-
-        private func stateFavoriteUpdated(response: FavoriteUpdatedResponse) {
-            vo.reloadFavoriteUI(comic: response.comic)
-        }
-        
         // MARK: - Make Something
         
         private func makeCell() -> CellRegistration {
             .init { cell, _, episode in
                 var config = UIListContentConfiguration.cell()
-                config.text = episode.data.title
+                config.text = episode.title
                 cell.contentConfiguration = config
                 cell.accessories = episode.selected ? [.checkmark()] : []
             }
@@ -154,7 +137,7 @@ extension Detail {
                 navigationItem.searchController?.isActive = false
                 vo.list.panGestureRecognizer.isEnabled = false // 停止下拉更新
                 vo.list.refreshControl?.endRefreshing()
-                LoadingView.show()
+                showLoading()
                 vm.doAction(.loadRemote)
                 vo.list.panGestureRecognizer.isEnabled = true
             }
@@ -162,32 +145,30 @@ extension Detail {
         
         // MARK: - Update Something
 
-        private func updateAfterCacheLoaded() {
+        private func updateAfterDataLoaded() {
             if firstInit {
                 firstInit = false
-                LoadingView.show()
+                showLoading()
                 vm.doAction(.loadRemote)
             }
             else {
-                vo.scrollListToWatched(indexPath: getWatchedIndexPath())
-            }
-        }
-        
-        private func updateAfterRemoveLoaded(isEmpty: Bool) {
-            if isEmpty {
-                var content = Self.makeError()
-                content.buttonProperties.primaryAction = makeReloadAction()
-                contentUnavailableConfiguration = content
-            }
-            else {
-                contentUnavailableConfiguration = nil
-                vo.scrollListToWatched(indexPath: getWatchedIndexPath())
+                if dataSource.snapshot().itemIdentifiers.isEmpty {
+                    showErrorContent(action: makeReloadAction())
+                }
+                else {
+                    contentUnavailableConfiguration = nil
+                    vo.scrollListToWatched(indexPath: getWatchedIndexPath())
+                }
             }
         }
         
         // MARK: - Get Something
         
         private func getWatchedIndexPath() -> IndexPath? {
+            if dataSource.snapshot().itemIdentifiers.isEmpty {
+                return nil
+            }
+            
             let items = dataSource.snapshot().itemIdentifiers
 
             guard let index = items.firstIndex(where: { $0.selected }) else {
@@ -207,6 +188,6 @@ extension Detail.ViewController: UICollectionViewDelegate {
             return
         }
 
-        router.toReader(comic: vm.comic, episode: episode.data)
+        router.toReader(comicId: vm.comicId, episodeId: episode.id)
     }
 }

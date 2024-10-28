@@ -9,14 +9,14 @@ import UIKit
 
 extension EpisodePicker {
     final class ViewController: UIViewController {
-        let vo = ViewOutlet()
-        let vm: ViewModel
-        let router = Router()
+        private let vo = ViewOutlet()
+        private let vm: ViewModel
+        private let router = Router()
+        private lazy var dataSource = makeDataSource()
         weak var delegate: Delegate?
-        lazy var dataSource = makeDataSource()
         
-        init(comic: Comic) {
-            self.vm = .init(comic: comic)
+        init(comicId: String, episodeId: String) {
+            self.vm = .init(comicId: comicId, epidoseId: episodeId)
             super.init(nibName: nil, bundle: nil)
         }
         
@@ -32,8 +32,8 @@ extension EpisodePicker {
             setupVO()
         }
         
-        override func viewIsAppearing(_ animated: Bool) {
-            super.viewIsAppearing(animated)
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
             vm.doAction(.loadData)
         }
         
@@ -92,7 +92,7 @@ extension EpisodePicker {
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
 
-                contentUnavailableConfiguration = episodes.isEmpty ? Self.makeEmpty() : nil
+                showEmptyContent(isEmpty: episodes.isEmpty)
                 vo.scrollListToWatched(indexPath: getWatchedIndexPath())
             }
         }
@@ -102,7 +102,7 @@ extension EpisodePicker {
         private func makeCell() -> CellRegistration {
             .init { cell, _, episode in
                 var config = UIListContentConfiguration.cell()
-                config.text = episode.data.title
+                config.text = episode.title
                 cell.contentConfiguration = config
                 cell.accessories = episode.selected ? [.checkmark()] : []
             }
@@ -119,6 +119,10 @@ extension EpisodePicker {
         // MARK: - Get Something
         
         private func getWatchedIndexPath() -> IndexPath? {
+            if dataSource.snapshot().itemIdentifiers.isEmpty {
+                return nil
+            }
+            
             let items = dataSource.snapshot().itemIdentifiers
 
             guard let index = items.firstIndex(where: { $0.selected }) else {
@@ -138,6 +142,6 @@ extension EpisodePicker.ViewController: UICollectionViewDelegate {
             return
         }
 
-        delegate?.picker(picker: self, selected: episode.data)
+        delegate?.picker(picker: self, selected: episode.id)
     }
 }

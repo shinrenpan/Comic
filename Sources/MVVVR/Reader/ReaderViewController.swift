@@ -9,14 +9,15 @@ import UIKit
 
 extension Reader {
     final class ViewController: UIViewController {
-        let vo = ViewOutlet()
-        let vm: ViewModel
-        let router = Router()
-        var hideBar = false
-        var readDirection = ReadDirection.horizontal
+        private let vo = ViewOutlet()
+        private let vm: ViewModel
+        private let router = Router()
+        private var isFavorited: Bool = false
+        private var hideBar = false
+        private var readDirection = ReadDirection.horizontal
         
-        init(comic: Comic, episode: Comic.Episode) {
-            self.vm = .init(comic: comic, episode: episode)
+        init(comicId: String, episodeId: String) {
+            self.vm = .init(comicId: comicId, episodeId: episodeId)
             super.init(nibName: nil, bundle: nil)
         }
         
@@ -32,10 +33,10 @@ extension Reader {
             setupVO()
         }
         
-        override func viewIsAppearing(_ animated: Bool) {
-            super.viewIsAppearing(animated)
-            LoadingView.show()
-            vm.doAction(.loadData(request: .init(epidose: nil)))
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            showLoading()
+            vm.doAction(.loadData(request: .init(epidoseId: nil)))
         }
         
         override func viewWillDisappear(_ animated: Bool) {
@@ -82,6 +83,8 @@ extension Reader {
                         stateNone()
                     case let .dataLoaded(response):
                         stateDataLoaded(response: response)
+                    case let .checkoutFavorited(response):
+                        stateCheckoutFavorited(response: response)
                     case let .dataLoadFail(response):
                         stateDataLoadFail(response: response)
                     }
@@ -144,16 +147,20 @@ extension Reader {
         private func stateNone() {}
 
         private func stateDataLoaded(response: DataLoadedResponse) {
-            LoadingView.hide()
-            navigationItem.title = response.episode.title
+            hideLoading()
+            navigationItem.title = response.episodeTitle
             vo.reloadEnableUI(response: response)
             updateHiddenBarUI(delay: true)
             updateListLayout()
             vo.reloadListToStartPosition()
         }
         
+        private func stateCheckoutFavorited(response: FavoriteResponse) {
+            isFavorited = response.isFavorited
+        }
+        
         private func stateDataLoadFail(response: ImageLoadFailResponse) {
-            LoadingView.hide()
+            hideLoading()
         }
         
         // MARK: - Make Something
@@ -225,17 +232,17 @@ extension Reader {
         private func makeEpisodePickAction() -> UIAction {
             .init(title: "選取集數", image: .init(systemName: "list.number")) { [weak self] _ in
                 guard let self else { return }
-                router.showEpisodePicker(comic: vm.comic)
+                router.showEpisodePicker(comicId: vm.comicId, epidoseId: vm.episodeId)
             }
         }
         
         private func makeFaveriteAction() -> UIAction {
-            let title: String = vm.comic.favorited ? "取消收藏" : "加入收藏"
-            let image: UIImage? = vm.comic.favorited ? .init(systemName: "star.fill") : .init(systemName: "star")
+            let title: String = isFavorited ? "取消收藏" : "加入收藏"
+            let image: UIImage? = isFavorited ? .init(systemName: "star.fill") : .init(systemName: "star")
 
             return .init(title: title, image: image) { [weak self] _ in
                 guard let self else { return }
-                vm.comic.favorited.toggle()
+                vm.doAction(.updateFavorite)
             }
         }
         
@@ -254,25 +261,25 @@ extension Reader {
         // MARK: - Do Something
 
         private func doLoadPrev() {
-            LoadingView.show()
+            showLoading()
             vo.reloadDisableUI()
             vm.doAction(.loadPrev)
         }
 
         private func doLoadNext() {
-            LoadingView.show()
+            showLoading()
             vo.reloadDisableUI()
             vm.doAction(.loadNext)
         }
 
-        private func doChangeEpisode(episode: Comic.Episode) {
-            if episode.id == vm.comic.watchedId {
+        private func doChangeEpisode(episodeId: String) {
+            if episodeId == vm.episodeId {
                 return
             }
 
-            LoadingView.show()
+            showLoading()
             vo.reloadDisableUI()
-            vm.doAction(.loadData(request: .init(epidose: episode)))
+            vm.doAction(.loadData(request: .init(epidoseId: episodeId)))
         }
         
         private func doChangeReadDirection() {
@@ -355,9 +362,9 @@ extension Reader.ViewController: UICollectionViewDelegateFlowLayout {
 // MARK: - EpisodeListModels.SelectedDelegate
 
 extension Reader.ViewController: EpisodePicker.Delegate {
-    func picker(picker: EpisodePicker.ViewController, selected episode: Comic.Episode) {
+    func picker(picker: EpisodePicker.ViewController, selected episodeId: String) {
         picker.dismiss(animated: true) {
-            self.doChangeEpisode(episode: episode)
+            self.doChangeEpisode(episodeId: episodeId)
         }
     }
 }

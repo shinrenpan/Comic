@@ -29,11 +29,11 @@ extension Detail {
         
         // MARK: - Public
         
-        func reloadHeader(comic: Comic) {
+        func reloadHeader(comic: DisplayComic) {
             header.reloadUI(comic: comic)
         }
         
-        func reloadFavoriteUI(comic: Comic) {
+        func reloadFavoriteUI(comic: DisplayComic) {
             let imgNamed = comic.favorited ? "star.fill" : "star"
             let image = UIImage(systemName: imgNamed)
             favoriteItem.image = image

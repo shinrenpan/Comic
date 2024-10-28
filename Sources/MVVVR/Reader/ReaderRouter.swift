@@ -12,8 +12,8 @@ extension Reader {
         
         // MARK: - Public
         
-        func showEpisodePicker(comic: Comic) {
-            let list = EpisodePicker.ViewController(comic: comic)
+        func showEpisodePicker(comicId: String, epidoseId: String) {
+            let list = EpisodePicker.ViewController(comicId: comicId, episodeId: epidoseId)
             list.delegate = vc
 
             let to = UINavigationController(rootViewController: list)

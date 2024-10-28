@@ -38,13 +38,3 @@ final class GBig {
         })
     }
 }
-
-extension String {
-    var big5: String {
-        GBig.traditionalize(self)
-    }
-
-    var gb: String {
-        GBig.simplify(self)
-    }
-}

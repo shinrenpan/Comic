@@ -8,22 +8,17 @@ import UIKit
 import WebParser
 
 extension Reader {
-    // MARK: - Type Alias
-    
-    typealias DataSource = UICollectionViewDiffableDataSource<Int, String>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, String>
-    typealias CellRegistration = UICollectionView.CellRegistration<Cell, String>
-    
     // MARK: - Action / Request
     
     enum Action {
         case loadData(request: LoadDataRequest)
+        case updateFavorite
         case loadPrev
         case loadNext
     }
     
     struct LoadDataRequest {
-        let epidose: Comic.Episode?
+        let epidoseId: String?
     }
     
     // MARK: - State / Response
@@ -31,13 +26,18 @@ extension Reader {
     enum State {
         case none
         case dataLoaded(response: DataLoadedResponse)
+        case checkoutFavorited(response: FavoriteResponse)
         case dataLoadFail(response: ImageLoadFailResponse)
     }
     
     struct DataLoadedResponse {
-        let episode: Comic.Episode
+        let episodeTitle: String?
         let hasPrev: Bool
         let hasNext: Bool
+    }
+    
+    struct FavoriteResponse {
+        let isFavorited: Bool
     }
     
     struct ImageLoadFailResponse {

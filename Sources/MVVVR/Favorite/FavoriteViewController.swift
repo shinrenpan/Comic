@@ -10,10 +10,10 @@ import UIKit
 
 extension Favorite {
     final class ViewController: UIViewController {
-        let vo = ViewOutlet()
-        let vm = ViewModel()
-        let router = Router()
-        lazy var dataSource = makeDataSource()
+        private let vo = ViewOutlet()
+        private let vm = ViewModel()
+        private let router = Router()
+        private lazy var dataSource = makeDataSource()
         
         override func viewDidLoad() {
             super.viewDidLoad()
@@ -22,9 +22,9 @@ extension Favorite {
             setupVO()
         }
         
-        override func viewIsAppearing(_ animated: Bool) {
-            super.viewIsAppearing(animated)
-            vm.doAction(.loadCache)
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            vm.doAction(.loadData)
         }
         
         // MARK: - Setup Something
@@ -46,10 +46,8 @@ extension Favorite {
                     switch vm.state {
                     case .none:
                         stateNone()
-                    case let .cacheLoaded(response):
-                        stateCacheLoaded(response: response)
-                    case let .favoriteRemoved(response):
-                        stateFavoriteRemoved(response: response)
+                    case let .dataLoaded(response):
+                        stateDataLoaded(response: response)
                     }
                     
                     setupBinding()
@@ -75,7 +73,7 @@ extension Favorite {
         
         private func stateNone() {}
         
-        private func stateCacheLoaded(response: CacheLoadedResponse) {
+        private func stateDataLoaded(response: DataLoadedResponse) {
             let comics = response.comics
             var snapshot = Snapshot()
             snapshot.appendSections([0])
@@ -83,18 +81,7 @@ extension Favorite {
             
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
-                contentUnavailableConfiguration = comics.isEmpty ? Self.makeEmpty() : nil
-            }
-        }
-        
-        private func stateFavoriteRemoved(response: FavoriteRemovedResponse) {
-            let comic = response.comic
-            var snapshot = dataSource.snapshot()
-            snapshot.deleteItems([comic])
-            
-            dataSource.apply(snapshot) { [weak self] in
-                guard let self else { return }
-                contentUnavailableConfiguration = snapshot.itemIdentifiers.isEmpty ? Self.makeEmpty() : nil
+                showEmptyContent(isEmpty: comics.isEmpty)
             }
         }
         
@@ -125,7 +112,7 @@ extension Favorite {
             return .init(actions: [makeRemoveFavoriteAction(comic: comic)])
         }
         
-        private func makeRemoveFavoriteAction(comic: Comic) -> UIContextualAction {
+        private func makeRemoveFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
                 guard let self else { return }
                 vm.doAction(.removeFavorite(request: .init(comic: comic)))
@@ -135,7 +122,7 @@ extension Favorite {
         private func makeCell() -> CellRegistration {
             .init { cell, _, comic in
                 cell.contentConfiguration = UIHostingConfiguration {
-                    CellContentView(comic: comic, cellType: .favorite)
+                    Cell(comic: comic)
                 }
             }
         }
@@ -160,7 +147,7 @@ extension Favorite.ViewController: UICollectionViewDelegate {
             return
         }
 
-        router.toDetail(comic: comic)
+        router.toDetail(comicId: comic.id)
     }
 }
 
@@ -168,6 +155,8 @@ extension Favorite.ViewController: UICollectionViewDelegate {
 
 extension Favorite.ViewController: CustomTab.ScrollToTopable {
     func scrollToTop() {
+        if dataSource.snapshot().itemIdentifiers.isEmpty { return }
+
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)
     }
