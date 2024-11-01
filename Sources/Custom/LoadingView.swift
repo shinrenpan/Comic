@@ -7,10 +7,10 @@
 import UIKit
 
 final class LoadingView: UIView {
+
     init(text: String = "Loading...") {
         super.init(frame: .zero)
         setupSelf()
-        setupBinding()
         addViews(text: text)
     }
 
@@ -18,40 +18,16 @@ final class LoadingView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-}
 
-// MARK: - Public
+    // MARK: - Setup Something
 
-extension LoadingView {
-    static func show(text: String = "Loading...") {
-        let loadingView = LoadingView(text: text)
-        NotificationCenter.default.post(name: .showLoading, object: loadingView)
-    }
-
-    static func hide() {
-        NotificationCenter.default.post(name: .hideLoading, object: nil)
-    }
-}
-
-// MARK: - Private
-
-private extension LoadingView {
-    // MARK: Setup Something
-
-    func setupSelf() {
+    private func setupSelf() {
         backgroundColor = .black.withAlphaComponent(0.5)
-    }
-
-    func setupBinding() {
-        NotificationCenter.default.addObserver(forName: .hideLoading, object: nil, queue: .main) { [weak self] _ in
-            guard let self else { return }
-            removeFromSuperview()
-        }
     }
 
     // MARK: - Add Something
 
-    func addViews(text: String) {
+    private func addViews(text: String) {
         let loading = UIActivityIndicatorView(style: .large)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
             .setup(\.color, value: .white)

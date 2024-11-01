@@ -12,8 +12,8 @@ extension Favorite {
         
         // MARK: - Public
         
-        func toDetail(comic: Comic) {
-            let to = Detail.ViewController(comic: comic)
+        func toDetail(comicId: String) {
+            let to = Detail.ViewController(comicId: comicId)
             to.hidesBottomBarWhenPushed = true
             vc?.navigationController?.show(to, sender: nil)
         }

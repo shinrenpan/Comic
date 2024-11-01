@@ -9,11 +9,13 @@ import UIKit
 
 extension EpisodePicker {
     @Observable final class ViewModel {
-        var state = State.none
-        let comic: Comic
+        private(set) var state = State.none
+        private let comicId: String
+        private let epidoseId: String
         
-        init(comic: Comic) {
-            self.comic = comic
+        init(comicId: String, epidoseId: String) {
+            self.comicId = comicId
+            self.epidoseId = epidoseId
         }
         
         // MARK: - Public
@@ -28,15 +30,16 @@ extension EpisodePicker {
         // MARK: - Handle Action
         
         private func actionLoadData() {
-            // comic.episodes 無排序, 需要先排序
-            let episodes = comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
-
-            let displayEpisodes: [Episode] = episodes.compactMap {
-                let selected = comic.watchedId == $0.id
-                return .init(data: $0, selected: selected)
+            Task {
+                let episodes = await ComicWorker.shared.getEpisodes(comicId: comicId)
+                
+                let displayEpisodes: [DisplayEpisode] = episodes.compactMap {
+                    let selected = epidoseId == $0.id
+                    return .init(epidose: $0, selected: selected)
+                }
+                
+                state = .dataLoaded(response: .init(episodes: displayEpisodes))
             }
-
-            state = .dataLoaded(response: .init(episodes: displayEpisodes))
         }
     }
 }

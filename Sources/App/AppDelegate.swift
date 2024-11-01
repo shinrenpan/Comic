@@ -13,25 +13,10 @@ import WebKit
     override init() {
         super.init()
         doCleanCookies()
-        setupBinding()
         setupAppearance()
     }
     
     // MARK: - Setup Something
-
-    private func setupBinding() {
-        NotificationCenter.default.addObserver(forName: .showLoading, object: nil, queue: .main) { [weak self] notify in
-            LoadingView.hide()
-
-            guard let self else { return }
-
-            guard let loadingView = notify.object as? LoadingView else {
-                return
-            }
-
-            showLoadingView(view: loadingView)
-        }
-    }
 
     private func setupAppearance() {
         let navAppearance = UINavigationBarAppearance()
@@ -57,22 +42,6 @@ import WebKit
                 WKWebsiteDataStore.default().removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
             }
         }
-    }
-    
-    // MARK: - Show Something
-
-    private func showLoadingView(view: LoadingView) {
-        guard let window else { return }
-
-        view.translatesAutoresizingMaskIntoConstraints = false
-        window.addSubview(view)
-
-        NSLayoutConstraint.activate([
-            view.topAnchor.constraint(equalTo: window.topAnchor),
-            view.leadingAnchor.constraint(equalTo: window.leadingAnchor),
-            view.trailingAnchor.constraint(equalTo: window.trailingAnchor),
-            view.bottomAnchor.constraint(equalTo: window.bottomAnchor),
-        ])
     }
     
     // MARK: - Make Something

@@ -9,10 +9,10 @@ import UIKit
 
 extension Setting {
     final class ViewController: UIViewController {
-        let vo = ViewOutlet()
-        let vm = ViewModel()
-        let router = Router()
-        lazy var dataSource = makeDataSource()
+        private let vo = ViewOutlet()
+        private let vm = ViewModel()
+        private let router = Router()
+        private lazy var dataSource = makeDataSource()
         
         override func viewDidLoad() {
             super.viewDidLoad()
@@ -21,8 +21,8 @@ extension Setting {
             setupVO()
         }
         
-        override func viewIsAppearing(_ animated: Bool) {
-            super.viewIsAppearing(animated)
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
             vm.doAction(.loadData)
         }
         
@@ -72,12 +72,12 @@ extension Setting {
         private func stateNone() {}
 
         private func stateDataLoaded(response: DataLoadedResponse) {
-            LoadingView.hide()
+            hideLoading()
 
-            let items = response.items
+            let settings = response.settings
             var snapshot = Snapshot()
             snapshot.appendSections([0])
-            snapshot.appendItems(items, toSection: 0)
+            snapshot.appendItems(settings, toSection: 0)
             dataSource.apply(snapshot)
         }
         
@@ -100,11 +100,11 @@ extension Setting {
             }
         }
 
-        private func makeItemAction(item: Item) -> UIAlertAction {
+        private func makeSettingAction(setting: DisplaySetting) -> UIAlertAction {
             .init(title: "確定清除", style: .destructive) { [weak self] _ in
                 guard let self else { return }
 
-                switch item.settingType {
+                switch setting.settingType {
                 case .favorite:
                     doCleanAction(action: .cleanFavorite)
                 case .history:
@@ -119,12 +119,12 @@ extension Setting {
         
         // MARK: - Do Something
 
-        private func doTapItem(item: Item, cell: UICollectionViewCell?) {
-            switch item.settingType {
+        private func doTap(setting: DisplaySetting, cell: UICollectionViewCell?) {
+            switch setting.settingType {
             case .cacheSize, .favorite, .history:
                 let cancel = UIAlertAction(title: "取消", style: .cancel)
-                let itemAction = makeItemAction(item: item)
-                router.showMenuForItem(item: item, actions: [itemAction, cancel], cell: cell)
+                let settingAction = makeSettingAction(setting: setting)
+                router.showMenuForSetting(setting: setting, actions: [settingAction, cancel], cell: cell)
 
             case .localData, .version: // 點中本地端資料 / 版本不做事
                 return
@@ -132,7 +132,7 @@ extension Setting {
         }
 
         private func doCleanAction(action: Action) {
-            LoadingView.show(text: "Cleaning...")
+            showLoading(text: "Cleaning...")
             vm.doAction(action)
         }
     }
@@ -144,11 +144,11 @@ extension Setting.ViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: false)
 
-        guard let item = dataSource.itemIdentifier(for: indexPath) else {
+        guard let setting = dataSource.itemIdentifier(for: indexPath) else {
             return
         }
 
         let cell = collectionView.cellForItem(at: indexPath)
-        doTapItem(item: item, cell: cell)
+        doTap(setting: setting, cell: cell)
     }
 }

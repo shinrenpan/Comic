@@ -11,7 +11,7 @@ extension String {
         case iOS
         case safari
         case custom(String)
-
+        
         var value: String {
             switch self {
             case .iOS:
@@ -23,14 +23,12 @@ extension String {
             }
         }
     }
-}
-
-extension String {
+    
     enum JavaScript {
         case update
         case detail
         case images
-
+        
         var value: String {
             switch self {
             case .update:
@@ -41,6 +39,14 @@ extension String {
                 getJavaScript(fileName: "Images")
             }
         }
+    }
+    
+    var big5: String {
+        GBig.traditionalize(self)
+    }
+    
+    var gb: String {
+        GBig.simplify(self)
     }
 }
 

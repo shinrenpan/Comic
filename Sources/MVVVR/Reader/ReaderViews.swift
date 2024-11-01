@@ -74,7 +74,7 @@ extension Reader {
     }
 }
 
-extension Reader {
+private extension Reader {
     struct CellIndicator: Indicator {
         let label = UILabel(frame: .zero)
             .setup(\.font, value: .preferredFont(forTextStyle: .extraLargeTitle))

@@ -9,9 +9,9 @@ import UIKit
 extension Setting {
     // MARK: - Type Alias
     
-    typealias DataSource = UICollectionViewDiffableDataSource<Int, Item>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Item>
-    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Item>
+    typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplaySetting>
+    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, DisplaySetting>
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, DisplaySetting>
     
     // MARK: - Action / Request
     
@@ -30,7 +30,7 @@ extension Setting {
     }
     
     struct DataLoadedResponse {
-        let items: [Item]
+        let settings: [DisplaySetting]
     }
     
     // MARK: - Models
@@ -43,15 +43,9 @@ extension Setting {
         case version
     }
 
-    final class Item: NSObject {
+    struct DisplaySetting: Hashable {
         let title: String
         let subTitle: String
         let settingType: SettingType
-
-        init(title: String, subTitle: String, settingType: SettingType) {
-            self.title = title
-            self.subTitle = subTitle
-            self.settingType = settingType
-        }
     }
 }

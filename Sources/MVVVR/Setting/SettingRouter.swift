@@ -12,10 +12,10 @@ extension Setting {
         
         // MARK: - Public
         
-        func showMenuForItem(item: Item, actions: [UIAlertAction], cell: UICollectionViewCell?) {
+        func showMenuForSetting(setting: DisplaySetting, actions: [UIAlertAction], cell: UICollectionViewCell?) {
             let sheet = UIAlertController(
-                title: "清除\(item.title)",
-                message: "是否確定清除\(item.title)",
+                title: "清除\(setting.title)",
+                message: "是否確定清除\(setting.title)",
                 preferredStyle: .actionSheet
             )
 
@@ -28,6 +28,5 @@ extension Setting {
 
             vc?.present(sheet, animated: true)
         }
-
     }
 }

@@ -9,14 +9,14 @@ import UIKit
 extension Detail {
     // MARK: - Type Alias
     
-    typealias DataSource = UICollectionViewDiffableDataSource<Int, Episode>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Episode>
-    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Episode>
+    typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplayEpisode>
+    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, DisplayEpisode>
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, DisplayEpisode>
     
     // MARK: - Action / Request
     
     enum Action {
-        case loadCache
+        case loadData
         case loadRemote
         case tapFavorite
     }
@@ -25,33 +25,44 @@ extension Detail {
     
     enum State {
         case none
-        case cacheLoaded(response: CacheLoadedResponse)
-        case remoteLoaded(response: RemoteLoadedResponse)
-        case favoriteUpdated(response: FavoriteUpdatedResponse)
+        case dataLoaded(response: DataLoadedResponse)
     }
     
-    struct CacheLoadedResponse {
-        let comic: Comic
-        let episodes: [Episode]
-    }
-    
-    struct RemoteLoadedResponse {
-        let comic: Comic
-        let episodes: [Episode]
-    }
-    
-    struct FavoriteUpdatedResponse {
-        let comic: Comic
+    struct DataLoadedResponse {
+        let comic: DisplayComic?
+        let episodes: [DisplayEpisode]
     }
     
     // MARK: - Models
     
-    final class Episode: NSObject {
-        let data: Comic.Episode
+    struct DisplayComic {
+        let title: String
+        let author: String
+        let description: String?
+        let cover: String?
+        let favorited: Bool
+        
+        init(comic: Comic) {
+            self.title = comic.title
+            self.author = comic.detail?.author ?? "Unknown"
+            self.description = comic.detail?.desc
+            self.cover = comic.detail?.cover
+            self.favorited = comic.favorited
+        }
+    }
+    
+    struct DisplayEpisode: Hashable {
+        let id: String
+        let title: String
         let selected: Bool
-
-        init(data: Comic.Episode, selected: Bool) {
-            self.data = data
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+        
+        init(episode: Comic.Episode, selected: Bool) {
+            self.id = episode.id
+            self.title = episode.title
             self.selected = selected
         }
     }
