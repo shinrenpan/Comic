@@ -15,11 +15,9 @@ extension AnyCodable {
     subscript(key: String) -> AnyCodable {
         anyDic?[key] ?? AnyCodable(NSNull())
     }
-}
 
-// MARK: - Computed Properties
+    // MARK: - Computed Properties
 
-extension AnyCodable {
     var string: String? {
         value as? String
     }
@@ -61,12 +59,10 @@ extension AnyCodable {
     var isNull: Bool {
         value is NSNull
     }
-}
 
-// MARK: - Private
+    // MARK: - Private
 
-private extension AnyCodable {
-    func convertToAnyArray() -> [AnyCodable]? {
+    private func convertToAnyArray() -> [AnyCodable]? {
         guard let array = value as? [Any?] else {
             return nil
         }
@@ -79,7 +75,7 @@ private extension AnyCodable {
         }
     }
 
-    func convertToAnyDic() -> [String: AnyCodable]? {
+    private func convertToAnyDic() -> [String: AnyCodable]? {
         guard let dic = value as? [String: Any?] else {
             return nil
         }
@@ -92,7 +88,7 @@ private extension AnyCodable {
         }
     }
 
-    func convertToNumber() -> NSNumber {
+    private func convertToNumber() -> NSNumber {
         if let int {
             return NSNumber(value: int)
         }

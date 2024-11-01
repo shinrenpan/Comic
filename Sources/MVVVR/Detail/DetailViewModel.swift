@@ -11,21 +11,21 @@ import WebParser
 
 extension Detail {
     @Observable final class ViewModel {
-        var state = State.none
-        let comic: Comic
-        let parser: Parser
+        let comicId: String
+        private(set) var state = State.none
+        private let parser: Parser
         
-        init(comic: Comic) {
-            self.comic = comic
-            self.parser = .init(parserConfiguration: .detail(comic: comic))
+        init(comicId: String) {
+            self.comicId = comicId
+            self.parser = .init(parserConfiguration: .detail(comicId: comicId))
         }
         
         // MARK: - Public
         
         func doAction(_ action: Action) {
             switch action {
-            case .loadCache:
-                actionLoadCache()
+            case .loadData:
+                actionLoadData()
             case .loadRemote:
                 actionLoadRemote()
             case .tapFavorite:
@@ -35,52 +35,53 @@ extension Detail {
         
         // MARK: - Handle Action
         
-        private func actionLoadCache() {
-            // comic.episodes 無排序, 需要先排序
-            let episodes = comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
-
-            let displayEpisodes: [Episode] = episodes.compactMap {
-                let selected = comic.watchedId == $0.id
-                return .init(data: $0, selected: selected)
+        private func actionLoadData() {
+            Task {
+                if let comic = await ComicWorker.shared.getComic(id: comicId) {
+                    let episodes = await ComicWorker.shared.getEpisodes(comicId: comicId)
+                    
+                    let displayEpisodes: [DisplayEpisode] = episodes.compactMap {
+                        let selected = comic.watchedId == $0.id
+                        return .init(episode: $0, selected: selected)
+                    }
+                    
+                    let displayComic = DisplayComic(comic: comic)
+                    let response = DataLoadedResponse(comic: displayComic, episodes: displayEpisodes)
+                    state = .dataLoaded(response: response)
+                }
+                else {
+                    state = .dataLoaded(response: .init(comic: nil, episodes: []))
+                }
             }
-
-            let response = CacheLoadedResponse(comic: comic, episodes: displayEpisodes)
-            state = .cacheLoaded(response: response)
         }
 
         private func actionLoadRemote() {
             Task {
                 do {
-                    let result = try await parser.result()
-                    await handleLoadRemote(result: result)
-                    // comic.episodes 無排序, 需要先排序
-                    let episodes = comic.episodes?.sorted(by: { $0.index < $1.index }) ?? []
-
-                    let displayEpisodes: [Episode] = episodes.compactMap {
-                        let selected = comic.watchedId == $0.id
-                        return .init(data: $0, selected: selected)
+                    guard let comic = await ComicWorker.shared.getComic(id: comicId) else {
+                        throw ParserError.timeout
                     }
-
-                    let response = RemoteLoadedResponse(comic: comic, episodes: displayEpisodes)
-                    state = .remoteLoaded(response: response)
+                    
+                    let result = try await parser.result()
+                    await handleLoadRemote(comic: comic, result: result)
+                    actionLoadData()
                 }
                 catch {
-                    let response = RemoteLoadedResponse(comic: comic, episodes: [])
-                    state = .remoteLoaded(response: response)
+                    actionLoadData()
                 }
             }
         }
 
         private func actionTapFavorite() {
             Task {
-                comic.favorited.toggle()
-                state = .favoriteUpdated(response: .init(comic: comic))
+                await ComicWorker.shared.getComic(id: comicId)?.favorited.toggle()
+                actionLoadData()
             }
         }
 
         // MARK: - Handle Action Result
 
-        private func handleLoadRemote(result: Any) async {
+        private func handleLoadRemote(comic: Comic, result: Any) async {
             let data = AnyCodable(result)
             comic.detail?.author = data["author"].string ?? ""
             comic.detail?.desc = data["desc"].string ?? ""
@@ -103,7 +104,7 @@ extension Detail {
                 return .init(id: id, index: index, title: title)
             }
 
-            await DBWorker.shared.updateComicEpisodes(comic, episodes: episodes)
+            await ComicWorker.shared.updateEpisodes(id: comic.id, episodes: episodes)
         }
     }
 }

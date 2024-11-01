@@ -10,7 +10,7 @@ import UIKit
 
 extension Setting {
     @Observable final class ViewModel {
-        var state = State.none
+        private(set) var state = State.none
         
         // MARK: - Public
         
@@ -31,13 +31,13 @@ extension Setting {
 
         private func actionLoadData() {
             Task {
-                let comicCount = await DBWorker.shared.getComicList().count
-                let favoriteCount = await DBWorker.shared.getComicFavoriteList().count
-                let historyCount = await DBWorker.shared.getComicHistoryList().count
+                let comicCount = await ComicWorker.shared.getAll().count
+                let favoriteCount = await ComicWorker.shared.getFavorites().count
+                let historyCount = await ComicWorker.shared.getHistories().count
                 let cacheSize = await getCacheImagesSize()
                 let version = Bundle.main.version + "/" + Bundle.main.build
 
-                let items: [Item] = [
+                let settigs: [DisplaySetting] = [
                     .init(title: "本地資料", subTitle: "\(comicCount) 筆", settingType: .localData),
                     .init(title: "收藏紀錄", subTitle: "\(favoriteCount) 筆", settingType: .favorite),
                     .init(title: "觀看紀錄", subTitle: "\(historyCount) 筆", settingType: .history),
@@ -45,27 +45,27 @@ extension Setting {
                     .init(title: "版本", subTitle: version, settingType: .version),
                 ]
 
-                state = .dataLoaded(response: .init(items: items))
+                state = .dataLoaded(response: .init(settings: settigs))
             }
         }
 
         private func actionCleanFavorite() {
             Task {
-                await DBWorker.shared.getComicFavoriteList().forEach { $0.favorited = false }
+                await ComicWorker.shared.removeAllFavorite()
                 actionLoadData()
             }
         }
 
         private func actionCleanHistory() {
             Task {
-                await DBWorker.shared.removeAllComicHistory()
+                await ComicWorker.shared.removeAllHistory()
                 actionLoadData()
             }
         }
 
         private func actionCleanCache() {
-            ImageCache.default.clearDiskCache { [weak self] in
-                guard let self else { return }
+            Task {
+                await ImageCache.default.asyncCleanDiskCache()
                 actionLoadData()
             }
         }

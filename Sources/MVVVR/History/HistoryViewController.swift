@@ -10,10 +10,10 @@ import UIKit
 
 extension History {
     final class ViewController: UIViewController {
-        let vo = ViewOutlet()
-        let vm = ViewModel()
-        let router = Router()
-        lazy var dataSource = makeDataSource()
+        private let vo = ViewOutlet()
+        private let vm = ViewModel()
+        private let router = Router()
+        private lazy var dataSource = makeDataSource()
         
         override func viewDidLoad() {
             super.viewDidLoad()
@@ -22,9 +22,9 @@ extension History {
             setupVO()
         }
         
-        override func viewIsAppearing(_ animated: Bool) {
-            super.viewIsAppearing(animated)
-            vm.doAction(.loadCache)
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            vm.doAction(.loadData)
         }
         
         // MARK: - Setup Something
@@ -46,14 +46,8 @@ extension History {
                     switch vm.state {
                     case .none:
                         stateNone()
-                    case let .cacheLoaded(response):
-                        stateCacheLoaded(response: response)
-                    case let .favoriteAdded(response):
-                        stateFavoriteAdded(response: response)
-                    case let .favoriteRemoved(response):
-                        stateFavoriteRemoved(response: response)
-                    case let .historyRemoved(response):
-                        stateHistoryRemoved(response: response)
+                    case let .dataLoaded(response):
+                        stateDataLoaded(response: response)
                     }
                     
                     setupBinding()
@@ -79,43 +73,18 @@ extension History {
 
         private func stateNone() {}
 
-        private func stateCacheLoaded(response: CacheLoadedResponse) {
+        private func stateDataLoaded(response: DataLoadedResponse) {
             let comics = response.comics
             var snapshot = Snapshot()
             snapshot.appendSections([0])
             snapshot.appendItems(comics, toSection: 0)
-
+            
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
-                contentUnavailableConfiguration = comics.isEmpty ? Self.makeEmpty() : nil
+                showEmptyContent(isEmpty: comics.isEmpty)
             }
         }
-
-        private func stateFavoriteAdded(response: FavoriteAddedResponse) {
-            let comic = response.comic
-            var snapshot = dataSource.snapshot()
-            snapshot.reloadItems([comic])
-            dataSource.apply(snapshot)
-        }
-
-        private func stateFavoriteRemoved(response: FavoriteRemovedResponse) {
-            let comic = response.comic
-            var snapshot = dataSource.snapshot()
-            snapshot.reloadItems([comic])
-            dataSource.apply(snapshot)
-        }
-
-        private func stateHistoryRemoved(response: HistoryRemovedResponse) {
-            let comic = response.comic
-            var snapshot = dataSource.snapshot()
-            snapshot.deleteItems([comic])
-
-            dataSource.apply(snapshot) { [weak self] in
-                guard let self else { return }
-                contentUnavailableConfiguration = snapshot.itemIdentifiers.isEmpty ? Self.makeEmpty() : nil
-            }
-        }
-
+        
         // MARK: - Make Something
 
         private func makeListLayout() -> UICollectionViewCompositionalLayout {
@@ -154,21 +123,21 @@ extension History {
             }
         }
         
-        private func makeRemoveHistoryAction(comic: Comic) -> UIContextualAction {
+        private func makeRemoveHistoryAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "移除紀錄") { [weak self] _, _, _ in
                 guard let self else { return }
                 vm.doAction(.removeHistory(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .red)
         }
         
-        private func makeAddFavoriteAction(comic: Comic) -> UIContextualAction {
+        private func makeAddFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
                 guard let self else { return }
                 vm.doAction(.addFavorite(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .blue)
         }
         
-        private func makeRemoveFavoriteAction(comic: Comic) -> UIContextualAction {
+        private func makeRemoveFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
                 guard let self else { return }
                 vm.doAction(.removeFavorite(request: .init(comic: comic)))
@@ -178,7 +147,7 @@ extension History {
         private func makeCell() -> CellRegistration {
             .init { cell, _, comic in
                 cell.contentConfiguration = UIHostingConfiguration {
-                    CellContentView(comic: comic, cellType: .history)
+                    Cell(comic: comic)
                 }
             }
         }
@@ -203,7 +172,7 @@ extension History.ViewController: UICollectionViewDelegate {
             return
         }
 
-        router.toDetail(comic: comic)
+        router.toDetail(comicId: comic.id)
     }
 }
 
@@ -211,6 +180,8 @@ extension History.ViewController: UICollectionViewDelegate {
 
 extension History.ViewController: CustomTab.ScrollToTopable {
     func scrollToTop() {
+        if dataSource.snapshot().itemIdentifiers.isEmpty { return }
+
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)
     }

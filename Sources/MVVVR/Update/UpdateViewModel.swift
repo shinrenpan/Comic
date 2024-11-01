@@ -11,15 +11,15 @@ import WebParser
 
 extension Update {
     @Observable final class ViewModel {
-        var state = State.none
-        let parser = Parser(parserConfiguration: .update())
+        private(set) var state = State.none
+        private let parser = Parser(parserConfiguration: .update())
         
         // MARK: - Public
         
         func doAction(_ action: Action) {
             switch action {
-            case .loadCache:
-                actionLoadCache()
+            case .loadData:
+                actionLoadData()
             case .loadRemote:
                 actionLoadRemote()
             case let .localSearch(request):
@@ -33,11 +33,11 @@ extension Update {
         
         // MARK: - Handle Action
 
-        private func actionLoadCache() {
+        private func actionLoadData() {
             Task {
-                let comics = await DBWorker.shared.getComicList()
-                let response = CacheLoadedResponse(comics: comics)
-                state = .cacheLoaded(response: response)
+                let comics = await ComicWorker.shared.getAll()
+                let response = DataLoadedResponse(comics: comics.compactMap { .init(comic: $0) })
+                state = .dataLoaded(response: response)
             }
         }
 
@@ -46,39 +46,37 @@ extension Update {
                 do {
                     let result = try await parser.result()
                     let array = AnyCodable(result).anyArray ?? []
-                    await DBWorker.shared.insertOrUpdateComics(array)
-                    let comics = await DBWorker.shared.getComicList()
-                    let response = RemoteLoadedResponse(comics: comics)
-                    state = .remoteLoaded(response: response)
+                    await ComicWorker.shared.insertOrUpdateComics(array)
+                    actionLoadData()
                 }
                 catch {
-                    let comics = await DBWorker.shared.getComicList()
-                    let response = RemoteLoadedResponse(comics: comics)
-                    state = .remoteLoaded(response: response)
+                    actionLoadData()
                 }
             }
         }
 
         private func actionLocalSearch(request: LocalSearchRequest) {
             Task {
-                let comics = await DBWorker.shared.getComicListByKeywords(request.keywords)
-                let response = LocalSearchedResponse(comics: comics)
+                let comics = await ComicWorker.shared.getAll(keywords: request.keywords)
+                let response = LocalSearchedResponse(comics: comics.compactMap { .init(comic: $0) })
                 state = .localSearched(response: response)
             }
         }
 
         private func actionAddFavorite(request: AddFavoriteRequest) {
-            let comic = request.comic
-            comic.favorited = true
-            let response = FavoriteAddedResponse(comic: comic)
-            state = .favoriteAdded(response: response)
+            Task {
+                let comic = request.comic
+                await ComicWorker.shared.updateFavorite(id: comic.id, favorited: true)
+                actionLoadData()
+            }
         }
 
         private func actionRemoveFavorite(request: RemoveFavoriteRequest) {
-            let comic = request.comic
-            comic.favorited = false
-            let response = FavoriteRemovedResponse(comic: comic)
-            state = .favoriteRemoved(response: response)
+            Task {
+                let comic = request.comic
+                await ComicWorker.shared.updateFavorite(id: comic.id, favorited: false)
+                actionLoadData()
+            }
         }
     }
 }

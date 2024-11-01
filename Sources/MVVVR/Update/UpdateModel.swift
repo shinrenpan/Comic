@@ -10,14 +10,14 @@ import WebParser
 extension Update {
     // MARK: - Type Alias
     
-    typealias DataSource = UICollectionViewDiffableDataSource<Int, Comic>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Comic>
-    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Comic>
+    typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplayComic>
+    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, DisplayComic>
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, DisplayComic>
     
     // MARK: - Action / Request
     
     enum Action {
-        case loadCache
+        case loadData
         case loadRemote
         case localSearch(request: LocalSearchRequest)
         case addFavorite(request: AddFavoriteRequest)
@@ -29,41 +29,52 @@ extension Update {
     }
     
     struct AddFavoriteRequest {
-        let comic: Comic
+        let comic: DisplayComic
     }
     
     struct RemoveFavoriteRequest {
-        let comic: Comic
+        let comic: DisplayComic
     }
     
     // NARK: - State / Response
     
     enum State {
         case none
-        case cacheLoaded(response: CacheLoadedResponse)
-        case remoteLoaded(response: RemoteLoadedResponse)
+        case dataLoaded(response: DataLoadedResponse)
         case localSearched(response: LocalSearchedResponse)
-        case favoriteAdded(response: FavoriteAddedResponse)
-        case favoriteRemoved(response: FavoriteRemovedResponse)
     }
     
-    struct CacheLoadedResponse {
-        let comics: [Comic]
-    }
-    
-    struct RemoteLoadedResponse {
-        let comics: [Comic]
+    struct DataLoadedResponse {
+        let comics: [DisplayComic]
     }
     
     struct LocalSearchedResponse {
-        let comics: [Comic]
+        let comics: [DisplayComic]
     }
     
-    struct FavoriteAddedResponse {
-        let comic: Comic
-    }
-    
-    struct FavoriteRemovedResponse {
-        let comic: Comic
+    struct DisplayComic: Hashable {
+        let id: String
+        let title: String
+        let coverURI: String
+        let favorited: Bool
+        let lastUpdate: TimeInterval
+        let hasNew: Bool
+        let note: String
+        let watchDate: Date?
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+        
+        init(comic: Comic) {
+            self.id = comic.id
+            self.title = comic.title
+            self.coverURI = comic.detail?.cover ?? ""
+            self.favorited = comic.favorited
+            self.lastUpdate = comic.lastUpdate
+            self.hasNew = comic.hasNew
+            self.note = comic.note
+            self.watchDate = comic.watchDate
+        }
     }
 }

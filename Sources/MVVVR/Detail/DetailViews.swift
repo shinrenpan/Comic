@@ -16,6 +16,7 @@ extension Detail {
         let titleLabel = UILabel(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
             .setup(\.font, value: .preferredFont(forTextStyle: .headline))
+            .setup(\.numberOfLines, value: 2)
         
         let authorLabel = UILabel(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
@@ -39,12 +40,12 @@ extension Detail {
         
         // MARK: - Public
         
-        func reloadUI(comic: Comic) {
+        func reloadUI(comic: DisplayComic) {
             titleLabel.text = comic.title
-            authorLabel.text = comic.detail?.author
-            descLabel.text = comic.detail?.desc
+            authorLabel.text = comic.author
+            descLabel.text = comic.description
 
-            if let cover = comic.detail?.cover {
+            if let cover = comic.cover {
                 coverView.kf.setImage(
                     with: URL(string: "https:\(cover)"),
                     options: [

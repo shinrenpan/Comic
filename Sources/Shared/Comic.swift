@@ -9,7 +9,7 @@ import SwiftData
 import UIKit
 
 @Model
-final class Comic: Hashable {
+final class Comic {
     /// Id
     @Attribute(.unique) let id: String
 
@@ -52,10 +52,6 @@ final class Comic: Hashable {
         self.hasNew = hasNew
     }
 
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-    }
-
     func updateHasNew() {
         hasNew = hasVew()
     }
@@ -96,7 +92,7 @@ extension Comic {
 
 extension Comic {
     @Model
-    final class Episode: Hashable {
+    final class Episode {
         var comic: Comic?
         /// Id
         let id: String
@@ -110,10 +106,6 @@ extension Comic {
             self.id = id
             self.index = index
             self.title = title
-        }
-
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(id)
         }
     }
 }

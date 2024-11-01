@@ -9,14 +9,14 @@ import UIKit
 
 extension Favorite {
     @Observable final class ViewModel {
-        var state = State.none
+        private(set) var state = State.none
         
         // MARK: - Public
         
         func doAction(_ action: Action) {
             switch action {
-            case .loadCache:
-                actionLoadCache()
+            case .loadData:
+                actionLoadData()
             case let .removeFavorite(request):
                 actionRemoveFavorite(request: request)
             }
@@ -24,17 +24,20 @@ extension Favorite {
         
         // MARK: - Handle Action
         
-        private func actionLoadCache() {
+        private func actionLoadData() {
             Task {
-                let comics = await DBWorker.shared.getComicFavoriteList()
-                state = .cacheLoaded(response: .init(comics: comics))
+                let comics = await ComicWorker.shared.getFavorites()
+                let response = DataLoadedResponse(comics: comics.compactMap {.init(comic: $0) })
+                state = .dataLoaded(response: response)
             }
         }
 
         private func actionRemoveFavorite(request: RemoveFavoriteRequest) {
-            let comic = request.comic
-            comic.favorited = false
-            state = .favoriteRemoved(response: .init(comic: comic))
+            Task {
+                let comic = request.comic
+                await ComicWorker.shared.updateFavorite(id: comic.id, favorited: false)
+                actionLoadData()
+            }
         }
     }
 }

@@ -10,14 +10,14 @@ extension EpisodePicker {
     // MARK: - Delegate
     
     protocol Delegate: UIViewController {
-        func picker(picker: ViewController, selected episode: Comic.Episode)
+        func picker(picker: ViewController, selected episodeId: String)
     }
     
     // MARK: - Type Alias
     
-    typealias DataSource = UICollectionViewDiffableDataSource<Int, Episode>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Episode>
-    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Episode>
+    typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplayEpisode>
+    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, DisplayEpisode>
+    typealias CellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, DisplayEpisode>
 
     // MARK: - Action / Request
     
@@ -33,17 +33,23 @@ extension EpisodePicker {
     }
     
     struct DataLoadedResponse {
-        let episodes: [Episode]
+        let episodes: [DisplayEpisode]
     }
     
     // MARK: - Models
     
-    final class Episode: NSObject {
-        let data: Comic.Episode
+    struct DisplayEpisode: Hashable {
+        let id: String
+        let title: String
         let selected: Bool
-
-        init(data: Comic.Episode, selected: Bool) {
-            self.data = data
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(id)
+        }
+        
+        init(epidose: Comic.Episode, selected: Bool) {
+            self.id = epidose.id
+            self.title = epidose.title
             self.selected = selected
         }
     }

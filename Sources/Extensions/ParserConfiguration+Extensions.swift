@@ -8,8 +8,8 @@ import UIKit
 import WebParser
 
 extension ParserConfiguration {
-    static func detail(comic: Comic) -> Self {
-        let uri = "https://m.manhuagui.com/comic/" + comic.id
+    static func detail(comicId: String) -> Self {
+        let uri = "https://m.manhuagui.com/comic/" + comicId
         let urlComponents = URLComponents(string: uri)!
 
         return .init(
@@ -22,8 +22,8 @@ extension ParserConfiguration {
         )
     }
 
-    static func images(comic: Comic, episode: Comic.Episode) -> Self {
-        let uri = "https://tw.manhuagui.com/comic/\(comic.id)/\(episode.id).html"
+    static func images(comicId: String, episodeId: String) -> Self {
+        let uri = "https://tw.manhuagui.com/comic/\(comicId)/\(episodeId).html"
         let urlComponents = URLComponents(string: uri)!
 
         return .init(
