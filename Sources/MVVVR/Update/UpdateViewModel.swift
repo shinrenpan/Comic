@@ -26,10 +26,6 @@ extension Update {
                 actionLocalSearch(request: request)
             case let .changeFavorite(request):
                 actionChangeFavorite(request: request)
-            //case let .addFavorite(request):
-            //    actionAddFavorite(request: request)
-            //case let .removeFavorite(request):
-            //    actionRemoveFavorite(request: request)
             }
         }
         
@@ -75,22 +71,5 @@ extension Update {
                 }
             }
         }
-        
-        /*
-        private func actionAddFavorite(request: AddFavoriteRequest) {
-            Task {
-                let comic = request.comic
-                await ComicWorker.shared.updateFavorite(id: comic.id, favorited: true)
-                actionLoadData()
-            }
-        }
-
-        private func actionRemoveFavorite(request: RemoveFavoriteRequest) {
-            Task {
-                let comic = request.comic
-                await ComicWorker.shared.updateFavorite(id: comic.id, favorited: false)
-                actionLoadData()
-            }
-        }*/
     }
 }

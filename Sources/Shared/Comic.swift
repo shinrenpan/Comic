@@ -72,7 +72,7 @@ final class Comic: @unchecked Sendable {
 
 extension Comic {
     @Model
-    final class Detail {
+    final class Detail: @unchecked Sendable {
         var comic: Comic?
         /// 封面
         var cover: String

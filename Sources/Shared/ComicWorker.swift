@@ -77,6 +77,12 @@ actor ComicWorker: ModelActor {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
     
+    // https://www.hackingwithswift.com/quick-start/swiftdata/how-to-optimize-the-performance-of-your-swiftdata-apps
+    func getAllCount() -> Int {
+        let descriptor = FetchDescriptor<Comic>()
+        return (try? modelContext.fetchCount(descriptor)) ?? 0
+    }
+    
     func getAll(keywords: String) -> [Comic] {
         if keywords.isEmpty { return getAll() }
 
@@ -104,6 +110,14 @@ actor ComicWorker: ModelActor {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
+    func getHistoryCount() -> Int {
+        let descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+            comic.watchedId != nil
+        })
+        
+        return (try? modelContext.fetchCount(descriptor)) ?? 0
+    }
+    
     func getFavorites() -> [Comic] {
         var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
             comic.favorited
@@ -114,6 +128,14 @@ actor ComicWorker: ModelActor {
         ]
 
         return (try? modelContext.fetch(descriptor)) ?? []
+    }
+    
+    func getFavoriteCount() -> Int {
+        let descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+            comic.favorited
+        })
+        
+        return (try? modelContext.fetchCount(descriptor)) ?? 0
     }
     
     func getEpisodes(comicId: String) -> [Comic.Episode] {

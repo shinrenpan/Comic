@@ -31,9 +31,9 @@ extension Setting {
 
         private func actionLoadData() {
             Task {
-                let comicCount = await ComicWorker.shared.getAll().count
-                let favoriteCount = await ComicWorker.shared.getFavorites().count
-                let historyCount = await ComicWorker.shared.getHistories().count
+                let comicCount = await ComicWorker.shared.getAllCount()
+                let favoriteCount = await ComicWorker.shared.getFavoriteCount()
+                let historyCount = await ComicWorker.shared.getHistoryCount()
                 let cacheSize = await getCacheImagesSize()
                 let version = Bundle.main.version + "/" + Bundle.main.build
 
