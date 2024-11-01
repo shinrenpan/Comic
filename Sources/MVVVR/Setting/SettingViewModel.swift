@@ -5,11 +5,11 @@
 //
 
 import Observation
-import Kingfisher
+@preconcurrency import Kingfisher
 import UIKit
 
 extension Setting {
-    @Observable final class ViewModel {
+    @MainActor @Observable final class ViewModel {
         private(set) var state = State.none
         
         // MARK: - Public

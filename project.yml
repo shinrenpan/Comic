@@ -4,7 +4,7 @@ options:
 packages:
   WebParser:
     url: https://github.com/shinrenpan/WebParser
-    from: 1.0.2
+    branch: swift6
   AnyCodable:
     url: https://github.com/Flight-School/AnyCodable
     from: 0.6.7
@@ -17,7 +17,7 @@ packages:
 settings:
   base:
     IPHONEOS_DEPLOYMENT_TARGET: 17.4
-    SWIFT_VERSION: 5.9
+    SWIFT_VERSION: 6.0
     DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
     ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: true
 targets:

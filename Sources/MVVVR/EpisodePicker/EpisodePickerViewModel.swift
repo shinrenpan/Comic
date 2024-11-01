@@ -8,7 +8,7 @@ import Observation
 import UIKit
 
 extension EpisodePicker {
-    @Observable final class ViewModel {
+    @MainActor @Observable final class ViewModel {
         private(set) var state = State.none
         private let comicId: String
         private let epidoseId: String

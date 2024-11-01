@@ -10,7 +10,7 @@ import UIKit
 import WebParser
 
 extension Reader {
-    @Observable final class ViewModel {
+    @MainActor @Observable final class ViewModel {
         let comicId: String
         private(set) var episodeId: String
         private(set) var state = State.none
@@ -52,7 +52,7 @@ extension Reader {
                     let isFavorited = await ComicWorker.shared.getComic(id: comicId)?.favorited ?? false
                     state = .checkoutFavorited(response: .init(isFavorited: isFavorited))
                     
-                    let result = try await parser.result()
+                    let result = try await parser.anyResult()
                     let images = try await makeImagesWithParser(result: result)
                     imageDatas = images.compactMap { .init(uri: $0.uri) }
                     

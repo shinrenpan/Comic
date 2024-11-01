@@ -9,9 +9,9 @@ import SwiftData
 import UIKit
 
 @Model
-final class Comic {
+final class Comic: @unchecked Sendable {
     /// Id
-    @Attribute(.unique) let id: String
+    @Attribute(.unique) private(set) var id: String
 
     /// Title
     var title: String
@@ -92,14 +92,14 @@ extension Comic {
 
 extension Comic {
     @Model
-    final class Episode {
+    final class Episode: @unchecked Sendable {
         var comic: Comic?
         /// Id
-        let id: String
+        private(set) var id: String
         /// Index
-        let index: Int
+        private(set) var index: Int
         /// Title
-        let title: String
+        private(set) var title: String
 
         init(comic: Comic? = nil, id: String, index: Int, title: String) {
             self.comic = comic

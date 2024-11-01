@@ -24,6 +24,8 @@ actor ComicWorker: ModelActor {
     // MARK: - Create
     
     func insertOrUpdateComics(_ anyCodables: [AnyCodable]) {
+        let all = getAll()
+        
         for anyCodable in anyCodables {
             guard let id = anyCodable["id"].string, !id.isEmpty else {
                 continue
@@ -34,7 +36,7 @@ actor ComicWorker: ModelActor {
             let lastUpdate = anyCodable["lastUpdate"].double ?? Date().timeIntervalSince1970
             let detailCover = anyCodable["detail"]["cover"].string ?? ""
 
-            if let comic = getComic(id: id) {
+            if let comic = all.first(where: {$0.id == id }) {
                 comic.title = anyCodable["title"].string ?? "unKnown"
                 comic.note = note
                 comic.lastUpdate = lastUpdate
@@ -125,8 +127,10 @@ actor ComicWorker: ModelActor {
     
     // MARK: - Update
     
-    func updateFavorite(id: String, favorited: Bool) {
-        getComic(id: id)?.favorited = favorited
+    func updateFavorite(id: String, favorited: Bool) -> Comic? {
+        guard let comic = getComic(id: id) else { return nil }
+        comic.favorited = favorited
+        return comic
     }
     
     func updateHistory(comicId: String, episodeId: String) {

@@ -10,7 +10,7 @@ import UIKit
 import WebParser
 
 extension Detail {
-    @Observable final class ViewModel {
+    @MainActor @Observable final class ViewModel {
         let comicId: String
         private(set) var state = State.none
         private let parser: Parser
@@ -62,7 +62,7 @@ extension Detail {
                         throw ParserError.timeout
                     }
                     
-                    let result = try await parser.result()
+                    let result = try await parser.anyResult()
                     await handleLoadRemote(comic: comic, result: result)
                     actionLoadData()
                 }
