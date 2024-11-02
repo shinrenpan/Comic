@@ -45,16 +45,14 @@ extension Detail {
             authorLabel.text = comic.author
             descLabel.text = comic.description
 
-            if let cover = comic.cover {
-                coverView.kf.setImage(
-                    with: URL(string: "https:\(cover)"),
-                    options: [
-                        .processor(DownsamplingImageProcessor(size: coverView.frame.size)),
-                        .scaleFactor(UIScreen.main.scale),
-                        .cacheOriginalImage,
-                    ]
-                )
-            }
+            coverView.kf.setImage(
+                with: URL(string: "https:\(comic.coverURI)"),
+                options: [
+                    .processor(DownsamplingImageProcessor(size: coverView.frame.size)),
+                    .scaleFactor(UIScreen.main.scale),
+                    .cacheOriginalImage,
+                ]
+            )
         }
         
         // MARK: - Setup Something

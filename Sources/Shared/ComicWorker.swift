@@ -24,7 +24,8 @@ actor ComicWorker: ModelActor {
     // MARK: - Create
     
     func insertOrUpdateComics(_ anyCodables: [AnyCodable]) {
-        let all = getAll()
+        let descriptor = FetchDescriptor<Comic>()
+        let all = (try? modelContext.fetch(descriptor)) ?? []
         
         for anyCodable in anyCodables {
             guard let id = anyCodable["id"].string, !id.isEmpty else {
@@ -32,25 +33,26 @@ actor ComicWorker: ModelActor {
             }
 
             let title = anyCodable["title"].string ?? "unKnown"
+            let cover = anyCodable["cover"].string ?? ""
             let note = anyCodable["note"].string ?? "unKnown"
             let lastUpdate = anyCodable["lastUpdate"].double ?? Date().timeIntervalSince1970
-            let detailCover = anyCodable["detail"]["cover"].string ?? ""
 
             if let comic = all.first(where: {$0.id == id }) {
                 comic.title = anyCodable["title"].string ?? "unKnown"
                 comic.note = note
                 comic.lastUpdate = lastUpdate
-                comic.detail?.cover = detailCover
+                comic.cover = cover
                 comic.updateHasNew()
             }
             else {
                 let comic = Comic(
                     id: id,
                     title: title,
+                    cover: cover,
                     note: note,
                     lastUpdate: lastUpdate,
                     favorited: false,
-                    detail: .init(cover: detailCover, desc: "", author: ""),
+                    detail: .init(desc: "", author: ""),
                     hasNew: true
                 )
 
@@ -69,11 +71,15 @@ actor ComicWorker: ModelActor {
         return try? modelContext.fetch(descriptor).first
     }
     
-    func getAll() -> [Comic] {
-        let descriptor = FetchDescriptor<Comic>(sortBy: [
+    func getAll(fetchLimit: Int? = nil) -> [Comic] {
+        var descriptor = FetchDescriptor<Comic>(sortBy: [
             SortDescriptor(\.lastUpdate, order: .reverse),
         ])
 
+        if let fetchLimit {
+            descriptor.fetchLimit = fetchLimit
+        }
+        
         return (try? modelContext.fetch(descriptor)) ?? []
     }
     
@@ -149,6 +155,7 @@ actor ComicWorker: ModelActor {
     
     // MARK: - Update
     
+    @discardableResult
     func updateFavorite(id: String, favorited: Bool) -> Comic? {
         guard let comic = getComic(id: id) else { return nil }
         comic.favorited = favorited

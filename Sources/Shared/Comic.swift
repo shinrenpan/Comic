@@ -16,6 +16,8 @@ final class Comic: @unchecked Sendable {
     /// Title
     var title: String
 
+    var cover: String
+    
     /// 更新至...
     var note: String
 
@@ -39,9 +41,10 @@ final class Comic: @unchecked Sendable {
 
     var hasNew: Bool
 
-    init(id: String, title: String, note: String, lastUpdate: TimeInterval, favorited: Bool, detail: Detail? = nil, episodes: [Episode]? = nil, watchedId: String? = nil, watchDate: Date? = nil, hasNew: Bool) {
+    init(id: String, title: String, cover: String, note: String, lastUpdate: TimeInterval, favorited: Bool, detail: Detail? = nil, episodes: [Episode]? = nil, watchedId: String? = nil, watchDate: Date? = nil, hasNew: Bool) {
         self.id = id
         self.title = title
+        self.cover = cover
         self.note = note
         self.lastUpdate = lastUpdate
         self.favorited = favorited
@@ -74,16 +77,13 @@ extension Comic {
     @Model
     final class Detail: @unchecked Sendable {
         var comic: Comic?
-        /// 封面
-        var cover: String
         /// 描述
         var desc: String
         /// 作者
         var author: String
 
-        init(comic: Comic? = nil, cover: String, desc: String, author: String) {
+        init(comic: Comic? = nil, desc: String, author: String) {
             self.comic = comic
-            self.cover = cover
             self.desc = desc
             self.author = author
         }
@@ -106,20 +106,6 @@ extension Comic {
             self.id = id
             self.index = index
             self.title = title
-        }
-    }
-}
-
-extension Comic {
-    final class ImageData {
-        /// Index
-        let index: Int
-        /// 圖片 URI
-        let uri: String
-
-        init(index: Int, uri: String) {
-            self.index = index
-            self.uri = uri
         }
     }
 }

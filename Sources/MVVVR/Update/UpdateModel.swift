@@ -69,7 +69,7 @@ extension Update {
         init(comic: Comic) {
             self.id = comic.id
             self.title = comic.title
-            self.coverURI = comic.detail?.cover ?? ""
+            self.coverURI = comic.cover
             self.favorited = comic.favorited
             self.lastUpdate = comic.lastUpdate
             self.hasNew = comic.hasNew

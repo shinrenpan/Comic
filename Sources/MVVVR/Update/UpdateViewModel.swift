@@ -33,7 +33,7 @@ extension Update {
 
         private func actionLoadData() {
             Task {
-                let comics = await ComicWorker.shared.getAll()
+                let comics = await ComicWorker.shared.getAll(fetchLimit: 1000)
                 let response = DataLoadedResponse(comics: comics.compactMap { .init(comic: $0) })
                 state = .dataLoaded(response: response)
             }

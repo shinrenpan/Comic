@@ -39,14 +39,14 @@ extension Detail {
         let title: String
         let author: String
         let description: String?
-        let cover: String?
+        let coverURI: String
         let favorited: Bool
         
         init(comic: Comic) {
             self.title = comic.title
             self.author = comic.detail?.author ?? "Unknown"
             self.description = comic.detail?.desc
-            self.cover = comic.detail?.cover
+            self.coverURI = comic.cover
             self.favorited = comic.favorited
         }
     }
