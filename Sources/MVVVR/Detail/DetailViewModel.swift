@@ -81,14 +81,14 @@ extension Detail {
 
         // MARK: - Handle Action Result
 
-        private func handleLoadRemote(comic: Comic, result: Any) async {
+        private func handleLoadRemote(comic: Database.Comic, result: Any) async {
             let data = AnyCodable(result)
             comic.detail?.author = data["author"].string ?? ""
             comic.detail?.desc = data["desc"].string ?? ""
 
             let array = data["episodes"].anyArray ?? []
 
-            let episodes: [Comic.Episode] = array.compactMap {
+            let episodes: [Database.Episode] = array.compactMap {
                 guard let id = $0["id"].string, !id.isEmpty else {
                     return nil
                 }

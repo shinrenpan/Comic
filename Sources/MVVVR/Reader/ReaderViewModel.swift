@@ -143,7 +143,7 @@ extension Reader {
         
         // MARK: - Get Something
         
-        private func getCurrentEpisode() async -> Comic.Episode? {
+        private func getCurrentEpisode() async -> Database.Episode? {
             let episodes = await ComicWorker.shared.getEpisodes(comicId: comicId)
             return episodes.first(where: { $0.id == episodeId })
         }

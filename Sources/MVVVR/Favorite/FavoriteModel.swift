@@ -50,7 +50,7 @@ extension Favorite {
             hasher.combine(id)
         }
         
-        init(comic: Comic) {
+        init(comic: Database.Comic) {
             self.id = comic.id
             self.title = comic.title
             self.coverURI = comic.cover

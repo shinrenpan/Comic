@@ -42,7 +42,7 @@ extension Detail {
         let coverURI: String
         let favorited: Bool
         
-        init(comic: Comic) {
+        init(comic: Database.Comic) {
             self.title = comic.title
             self.author = comic.detail?.author ?? "Unknown"
             self.description = comic.detail?.desc
@@ -60,7 +60,7 @@ extension Detail {
             hasher.combine(id)
         }
         
-        init(episode: Comic.Episode, selected: Bool) {
+        init(episode: Database.Episode, selected: Bool) {
             self.id = episode.id
             self.title = episode.title
             self.selected = selected

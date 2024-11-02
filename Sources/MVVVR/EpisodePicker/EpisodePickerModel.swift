@@ -47,7 +47,7 @@ extension EpisodePicker {
             hasher.combine(id)
         }
         
-        init(epidose: Comic.Episode, selected: Bool) {
+        init(epidose: Database.Episode, selected: Bool) {
             self.id = epidose.id
             self.title = epidose.title
             self.selected = selected

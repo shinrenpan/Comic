@@ -14,7 +14,7 @@ actor ComicWorker: ModelActor {
     nonisolated let modelExecutor: any ModelExecutor
     
     private init() {
-        let modelContainer = try! ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self)
+        let modelContainer = try! ModelContainer(for: Database.Comic.self, Database.Detail.self, Database.Episode.self)
         let modelContext = ModelContext(modelContainer)
         self.modelContainer = modelContainer
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: modelContext)
@@ -24,7 +24,7 @@ actor ComicWorker: ModelActor {
     // MARK: - Create
     
     func insertOrUpdateComics(_ anyCodables: [AnyCodable]) {
-        let descriptor = FetchDescriptor<Comic>()
+        let descriptor = FetchDescriptor<Database.Comic>()
         let all = (try? modelContext.fetch(descriptor)) ?? []
         
         for anyCodable in anyCodables {
@@ -45,7 +45,7 @@ actor ComicWorker: ModelActor {
                 comic.updateHasNew()
             }
             else {
-                let comic = Comic(
+                let comic = Database.Comic(
                     id: id,
                     title: title,
                     cover: cover,
@@ -63,16 +63,16 @@ actor ComicWorker: ModelActor {
     
     // MARK: - Read
     
-    func getComic(id: String) -> Comic? {
-        let descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+    func getComic(id: String) -> Database.Comic? {
+        let descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
             comic.id == id
         })
 
         return try? modelContext.fetch(descriptor).first
     }
     
-    func getAll(fetchLimit: Int? = nil) -> [Comic] {
-        var descriptor = FetchDescriptor<Comic>(sortBy: [
+    func getAll(fetchLimit: Int? = nil) -> [Database.Comic] {
+        var descriptor = FetchDescriptor<Database.Comic>(sortBy: [
             SortDescriptor(\.lastUpdate, order: .reverse),
         ])
 
@@ -85,14 +85,14 @@ actor ComicWorker: ModelActor {
     
     // https://www.hackingwithswift.com/quick-start/swiftdata/how-to-optimize-the-performance-of-your-swiftdata-apps
     func getAllCount() -> Int {
-        let descriptor = FetchDescriptor<Comic>()
+        let descriptor = FetchDescriptor<Database.Comic>()
         return (try? modelContext.fetchCount(descriptor)) ?? 0
     }
     
-    func getAll(keywords: String) -> [Comic] {
+    func getAll(keywords: String) -> [Database.Comic] {
         if keywords.isEmpty { return getAll() }
 
-        let descriptor = FetchDescriptor<Comic>(
+        let descriptor = FetchDescriptor<Database.Comic>(
             predicate: #Predicate {
                 $0.title.contains(keywords)
             },
@@ -104,8 +104,8 @@ actor ComicWorker: ModelActor {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
-    func getHistories() -> [Comic] {
-        var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+    func getHistories() -> [Database.Comic] {
+        var descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
             comic.watchedId != nil
         })
 
@@ -117,15 +117,15 @@ actor ComicWorker: ModelActor {
     }
 
     func getHistoryCount() -> Int {
-        let descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+        let descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
             comic.watchedId != nil
         })
         
         return (try? modelContext.fetchCount(descriptor)) ?? 0
     }
     
-    func getFavorites() -> [Comic] {
-        var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+    func getFavorites() -> [Database.Comic] {
+        var descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
             comic.favorited
         })
 
@@ -137,14 +137,14 @@ actor ComicWorker: ModelActor {
     }
     
     func getFavoriteCount() -> Int {
-        let descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+        let descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
             comic.favorited
         })
         
         return (try? modelContext.fetchCount(descriptor)) ?? 0
     }
     
-    func getEpisodes(comicId: String) -> [Comic.Episode] {
+    func getEpisodes(comicId: String) -> [Database.Episode] {
         guard let comic = getComic(id: comicId) else {
             return []
         }
@@ -156,7 +156,7 @@ actor ComicWorker: ModelActor {
     // MARK: - Update
     
     @discardableResult
-    func updateFavorite(id: String, favorited: Bool) -> Comic? {
+    func updateFavorite(id: String, favorited: Bool) -> Database.Comic? {
         guard let comic = getComic(id: id) else { return nil }
         comic.favorited = favorited
         return comic
@@ -169,7 +169,7 @@ actor ComicWorker: ModelActor {
         comic.updateHasNew()
     }
     
-    func updateEpisodes(id: String, episodes: [Comic.Episode]) {
+    func updateEpisodes(id: String, episodes: [Database.Episode]) {
         guard let comic = getComic(id: id) else { return }
         
         comic.episodes?.forEach {
