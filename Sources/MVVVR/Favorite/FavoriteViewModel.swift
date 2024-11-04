@@ -8,7 +8,7 @@ import Observation
 import UIKit
 
 extension Favorite {
-    @Observable final class ViewModel {
+    @MainActor @Observable final class ViewModel {
         private(set) var state = State.none
         
         // MARK: - Public

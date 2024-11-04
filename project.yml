@@ -4,20 +4,17 @@ options:
 packages:
   WebParser:
     url: https://github.com/shinrenpan/WebParser
-    from: 1.0.2
+    from: 1.1.0
   AnyCodable:
     url: https://github.com/Flight-School/AnyCodable
     from: 0.6.7
   Kingfisher:
     url: https://github.com/onevcat/Kingfisher
     from: 7.12.0
-  CollectionConcurrencyKit:
-    url: https://github.com/JohnSundell/CollectionConcurrencyKit
-    from: 0.2.0
 settings:
   base:
     IPHONEOS_DEPLOYMENT_TARGET: 17.4
-    SWIFT_VERSION: 5.9
+    SWIFT_VERSION: 6.0
     DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
     ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: true
 targets:
@@ -30,8 +27,8 @@ targets:
       base:
         CODE_SIGN_STYLE: Manual
         INFOPLIST_FILE: Sources/App/Info.plist
-        MARKETING_VERSION: 0.9.12
-        CURRENT_PROJECT_VERSION: 20241101
+        MARKETING_VERSION: 1.0.0
+        CURRENT_PROJECT_VERSION: 20241104
         PRODUCT_BUNDLE_IDENTIFIER: com.shinrenpan.Comic
       configs:
         Debug:
@@ -42,4 +39,3 @@ targets:
       - package: WebParser
       - package: AnyCodable
       - package: Kingfisher
-      - package: CollectionConcurrencyKit

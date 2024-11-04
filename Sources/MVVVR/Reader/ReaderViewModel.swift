@@ -10,7 +10,7 @@ import UIKit
 import WebParser
 
 extension Reader {
-    @Observable final class ViewModel {
+    @MainActor @Observable final class ViewModel {
         let comicId: String
         private(set) var episodeId: String
         private(set) var state = State.none
@@ -52,9 +52,8 @@ extension Reader {
                     let isFavorited = await ComicWorker.shared.getComic(id: comicId)?.favorited ?? false
                     state = .checkoutFavorited(response: .init(isFavorited: isFavorited))
                     
-                    let result = try await parser.result()
-                    let images = try await makeImagesWithParser(result: result)
-                    imageDatas = images.compactMap { .init(uri: $0.uri) }
+                    let result = try await parser.anyResult()
+                    imageDatas = try await makeImagesWithParser(result: result)
                     
                     if imageDatas.isEmpty {
                         state = .dataLoadFail(response: .init(error: .empty))
@@ -111,14 +110,10 @@ extension Reader {
         
         // MARK: - Make Something
 
-        private func makeImagesWithParser(result: Any) async throws -> [Comic.ImageData] {
+        private func makeImagesWithParser(result: Any) async throws -> [ImageData] {
             let array = AnyCodable(result).anyArray ?? []
 
-            let result: [Comic.ImageData] = array.compactMap {
-                guard let index = $0["index"].int else {
-                    return nil
-                }
-
+            let result: [ImageData] = array.compactMap {
                 guard let uri = $0["uri"].string, !uri.isEmpty else {
                     return nil
                 }
@@ -127,7 +122,7 @@ extension Reader {
                     return nil
                 }
 
-                return .init(index: index, uri: uriDecode)
+                return .init(uri: uriDecode)
             }
 
             if result.isEmpty {
@@ -148,7 +143,7 @@ extension Reader {
         
         // MARK: - Get Something
         
-        private func getCurrentEpisode() async -> Comic.Episode? {
+        private func getCurrentEpisode() async -> Database.Episode? {
             let episodes = await ComicWorker.shared.getEpisodes(comicId: comicId)
             return episodes.first(where: { $0.id == episodeId })
         }

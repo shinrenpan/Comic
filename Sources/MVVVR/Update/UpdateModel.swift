@@ -20,19 +20,14 @@ extension Update {
         case loadData
         case loadRemote
         case localSearch(request: LocalSearchRequest)
-        case addFavorite(request: AddFavoriteRequest)
-        case removeFavorite(request: RemoveFavoriteRequest)
+        case changeFavorite(request: ChangeFavoriteRequest)
     }
     
     struct LocalSearchRequest {
         let keywords: String
     }
     
-    struct AddFavoriteRequest {
-        let comic: DisplayComic
-    }
-    
-    struct RemoveFavoriteRequest {
+    struct ChangeFavoriteRequest {
         let comic: DisplayComic
     }
     
@@ -42,6 +37,7 @@ extension Update {
         case none
         case dataLoaded(response: DataLoadedResponse)
         case localSearched(response: LocalSearchedResponse)
+        case favoriteChanged(response: FavoriteChangedResponse)
     }
     
     struct DataLoadedResponse {
@@ -50,6 +46,10 @@ extension Update {
     
     struct LocalSearchedResponse {
         let comics: [DisplayComic]
+    }
+    
+    struct FavoriteChangedResponse {
+        let comic: DisplayComic
     }
     
     struct DisplayComic: Hashable {
@@ -66,10 +66,10 @@ extension Update {
             hasher.combine(id)
         }
         
-        init(comic: Comic) {
+        init(comic: Database.Comic) {
             self.id = comic.id
             self.title = comic.title
-            self.coverURI = comic.detail?.cover ?? ""
+            self.coverURI = comic.cover
             self.favorited = comic.favorited
             self.lastUpdate = comic.lastUpdate
             self.hasNew = comic.hasNew

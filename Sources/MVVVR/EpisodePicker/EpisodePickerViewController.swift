@@ -49,6 +49,7 @@ extension EpisodePicker {
             _ = withObservationTracking {
                 vm.state
             } onChange: { [weak self] in
+                guard let self else { return }
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if viewIfLoaded?.window == nil { return }

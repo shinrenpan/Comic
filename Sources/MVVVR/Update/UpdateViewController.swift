@@ -48,6 +48,7 @@ extension Update {
             _ = withObservationTracking {
                 vm.state
             } onChange: { [weak self] in
+                guard let self else { return }
                 Task { @MainActor [weak self] in
                     guard let self else { return }
                     if viewIfLoaded?.window == nil { return }
@@ -59,6 +60,8 @@ extension Update {
                         stateDataLoaded(response: response)
                     case let .localSearched(response):
                         stateLocalSearched(response: response)
+                    case let .favoriteChanged(response):
+                        stateFavoriteChanged(response: response)
                     }
                     
                     setupBinding()
@@ -111,6 +114,18 @@ extension Update {
             }
         }
 
+        private func stateFavoriteChanged(response: FavoriteChangedResponse) {
+            var snapshot = dataSource.snapshot()
+            
+            guard let old = snapshot.itemIdentifiers.first(where: { response.comic.id == $0.id }) else {
+                return
+            }
+            
+            snapshot.insertItems([response.comic], beforeItem: old)
+            snapshot.deleteItems([old])
+            dataSource.apply(snapshot)
+        }
+        
         // MARK: - Update Something
         
         private func updateAfterDataLoaded() {
@@ -164,14 +179,14 @@ extension Update {
         private func makeAddFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
                 guard let self else { return }
-                vm.doAction(.addFavorite(request: .init(comic: comic)))
+                vm.doAction(.changeFavorite(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .blue)
         }
         
         private func makeRemoveFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
                 guard let self else { return }
-                vm.doAction(.removeFavorite(request: .init(comic: comic)))
+                vm.doAction(.changeFavorite(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .orange)
         }
         

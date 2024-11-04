@@ -14,7 +14,7 @@ actor ComicWorker: ModelActor {
     nonisolated let modelExecutor: any ModelExecutor
     
     private init() {
-        let modelContainer = try! ModelContainer(for: Comic.self, Comic.Detail.self, Comic.Episode.self)
+        let modelContainer = try! ModelContainer(for: Database.Comic.self, Database.Detail.self, Database.Episode.self)
         let modelContext = ModelContext(modelContainer)
         self.modelContainer = modelContainer
         self.modelExecutor = DefaultSerialModelExecutor(modelContext: modelContext)
@@ -24,31 +24,35 @@ actor ComicWorker: ModelActor {
     // MARK: - Create
     
     func insertOrUpdateComics(_ anyCodables: [AnyCodable]) {
+        let descriptor = FetchDescriptor<Database.Comic>()
+        let all = (try? modelContext.fetch(descriptor)) ?? []
+        
         for anyCodable in anyCodables {
             guard let id = anyCodable["id"].string, !id.isEmpty else {
                 continue
             }
 
             let title = anyCodable["title"].string ?? "unKnown"
+            let cover = anyCodable["cover"].string ?? ""
             let note = anyCodable["note"].string ?? "unKnown"
             let lastUpdate = anyCodable["lastUpdate"].double ?? Date().timeIntervalSince1970
-            let detailCover = anyCodable["detail"]["cover"].string ?? ""
 
-            if let comic = getComic(id: id) {
+            if let comic = all.first(where: {$0.id == id }) {
                 comic.title = anyCodable["title"].string ?? "unKnown"
                 comic.note = note
                 comic.lastUpdate = lastUpdate
-                comic.detail?.cover = detailCover
+                comic.cover = cover
                 comic.updateHasNew()
             }
             else {
-                let comic = Comic(
+                let comic = Database.Comic(
                     id: id,
                     title: title,
+                    cover: cover,
                     note: note,
                     lastUpdate: lastUpdate,
                     favorited: false,
-                    detail: .init(cover: detailCover, desc: "", author: ""),
+                    detail: .init(desc: "", author: ""),
                     hasNew: true
                 )
 
@@ -59,26 +63,36 @@ actor ComicWorker: ModelActor {
     
     // MARK: - Read
     
-    func getComic(id: String) -> Comic? {
-        let descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+    func getComic(id: String) -> Database.Comic? {
+        let descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
             comic.id == id
         })
 
         return try? modelContext.fetch(descriptor).first
     }
     
-    func getAll() -> [Comic] {
-        let descriptor = FetchDescriptor<Comic>(sortBy: [
+    func getAll(fetchLimit: Int? = nil) -> [Database.Comic] {
+        var descriptor = FetchDescriptor<Database.Comic>(sortBy: [
             SortDescriptor(\.lastUpdate, order: .reverse),
         ])
 
+        if let fetchLimit {
+            descriptor.fetchLimit = fetchLimit
+        }
+        
         return (try? modelContext.fetch(descriptor)) ?? []
     }
     
-    func getAll(keywords: String) -> [Comic] {
+    // https://www.hackingwithswift.com/quick-start/swiftdata/how-to-optimize-the-performance-of-your-swiftdata-apps
+    func getAllCount() -> Int {
+        let descriptor = FetchDescriptor<Database.Comic>()
+        return (try? modelContext.fetchCount(descriptor)) ?? 0
+    }
+    
+    func getAll(keywords: String) -> [Database.Comic] {
         if keywords.isEmpty { return getAll() }
 
-        let descriptor = FetchDescriptor<Comic>(
+        let descriptor = FetchDescriptor<Database.Comic>(
             predicate: #Predicate {
                 $0.title.contains(keywords)
             },
@@ -90,8 +104,8 @@ actor ComicWorker: ModelActor {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
-    func getHistories() -> [Comic] {
-        var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+    func getHistories() -> [Database.Comic] {
+        var descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
             comic.watchedId != nil
         })
 
@@ -102,8 +116,16 @@ actor ComicWorker: ModelActor {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
 
-    func getFavorites() -> [Comic] {
-        var descriptor = FetchDescriptor<Comic>(predicate: #Predicate { comic in
+    func getHistoryCount() -> Int {
+        let descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
+            comic.watchedId != nil
+        })
+        
+        return (try? modelContext.fetchCount(descriptor)) ?? 0
+    }
+    
+    func getFavorites() -> [Database.Comic] {
+        var descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
             comic.favorited
         })
 
@@ -114,7 +136,15 @@ actor ComicWorker: ModelActor {
         return (try? modelContext.fetch(descriptor)) ?? []
     }
     
-    func getEpisodes(comicId: String) -> [Comic.Episode] {
+    func getFavoriteCount() -> Int {
+        let descriptor = FetchDescriptor<Database.Comic>(predicate: #Predicate { comic in
+            comic.favorited
+        })
+        
+        return (try? modelContext.fetchCount(descriptor)) ?? 0
+    }
+    
+    func getEpisodes(comicId: String) -> [Database.Episode] {
         guard let comic = getComic(id: comicId) else {
             return []
         }
@@ -125,8 +155,11 @@ actor ComicWorker: ModelActor {
     
     // MARK: - Update
     
-    func updateFavorite(id: String, favorited: Bool) {
-        getComic(id: id)?.favorited = favorited
+    @discardableResult
+    func updateFavorite(id: String, favorited: Bool) -> Database.Comic? {
+        guard let comic = getComic(id: id) else { return nil }
+        comic.favorited = favorited
+        return comic
     }
     
     func updateHistory(comicId: String, episodeId: String) {
@@ -136,7 +169,7 @@ actor ComicWorker: ModelActor {
         comic.updateHasNew()
     }
     
-    func updateEpisodes(id: String, episodes: [Comic.Episode]) {
+    func updateEpisodes(id: String, episodes: [Database.Episode]) {
         guard let comic = getComic(id: id) else { return }
         
         comic.episodes?.forEach {

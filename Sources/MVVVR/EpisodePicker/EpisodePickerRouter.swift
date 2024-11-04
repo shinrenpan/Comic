@@ -7,7 +7,7 @@
 import UIKit
 
 extension EpisodePicker {
-    final class Router {
+    @MainActor final class Router {
         weak var vc: ViewController?
     }
 }

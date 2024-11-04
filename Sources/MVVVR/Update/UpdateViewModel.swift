@@ -10,7 +10,7 @@ import UIKit
 import WebParser
 
 extension Update {
-    @Observable final class ViewModel {
+    @MainActor @Observable final class ViewModel {
         private(set) var state = State.none
         private let parser = Parser(parserConfiguration: .update())
         
@@ -24,10 +24,8 @@ extension Update {
                 actionLoadRemote()
             case let .localSearch(request):
                 actionLocalSearch(request: request)
-            case let .addFavorite(request):
-                actionAddFavorite(request: request)
-            case let .removeFavorite(request):
-                actionRemoveFavorite(request: request)
+            case let .changeFavorite(request):
+                actionChangeFavorite(request: request)
             }
         }
         
@@ -35,7 +33,7 @@ extension Update {
 
         private func actionLoadData() {
             Task {
-                let comics = await ComicWorker.shared.getAll()
+                let comics = await ComicWorker.shared.getAll(fetchLimit: 1000)
                 let response = DataLoadedResponse(comics: comics.compactMap { .init(comic: $0) })
                 state = .dataLoaded(response: response)
             }
@@ -44,8 +42,8 @@ extension Update {
         private func actionLoadRemote() {
             Task {
                 do {
-                    let result = try await parser.result()
-                    let array = AnyCodable(result).anyArray ?? []
+                    let result = try await parser.anyResult()
+                    let array = AnyCodable(result).anyArray ?? [] 
                     await ComicWorker.shared.insertOrUpdateComics(array)
                     actionLoadData()
                 }
@@ -63,19 +61,14 @@ extension Update {
             }
         }
 
-        private func actionAddFavorite(request: AddFavoriteRequest) {
+        private func actionChangeFavorite(request: ChangeFavoriteRequest) {
             Task {
                 let comic = request.comic
-                await ComicWorker.shared.updateFavorite(id: comic.id, favorited: true)
-                actionLoadData()
-            }
-        }
-
-        private func actionRemoveFavorite(request: RemoveFavoriteRequest) {
-            Task {
-                let comic = request.comic
-                await ComicWorker.shared.updateFavorite(id: comic.id, favorited: false)
-                actionLoadData()
+                
+                if let result = await ComicWorker.shared.updateFavorite(id: comic.id, favorited: !comic.favorited) {
+                    let response = FavoriteChangedResponse(comic: .init(comic: result))
+                    state = .favoriteChanged(response: response)
+                }
             }
         }
     }
