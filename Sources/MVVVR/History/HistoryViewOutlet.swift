@@ -7,7 +7,7 @@
 import UIKit
 
 extension History {
-    final class ViewOutlet {
+    @MainActor final class ViewOutlet {
         let mainView = UIView(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         

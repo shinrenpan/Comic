@@ -7,7 +7,7 @@
 import UIKit
 
 extension Detail {
-    final class Router {
+    @MainActor final class Router {
         weak var vc: ViewController?
         
         // MARK: - Public

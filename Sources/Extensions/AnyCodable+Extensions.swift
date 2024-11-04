@@ -7,7 +7,7 @@
 import AnyCodable
 import UIKit
 
-extension AnyCodable {
+extension AnyCodable: @unchecked @retroactive Sendable {
     subscript(index: Int) -> AnyCodable {
         anyArray?[safe: index] ?? AnyCodable(NSNull())
     }
