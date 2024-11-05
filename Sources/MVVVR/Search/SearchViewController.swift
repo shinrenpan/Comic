@@ -1,15 +1,14 @@
 //
-//  UpdateListVC.swift
+//  SearchViewController.swift
 //
-//  Created by Shinren Pan on 2024/5/21.
+//  Created by Joe Pan on 2024/11/5.
 //
 
 import SwiftUI
 import UIKit
 
-extension Update {
+extension Search {
     final class ViewController: UIViewController {
-        var firstInit = true
         private let vo = ViewOutlet()
         private let vm = ViewModel()
         private let router = Router()
@@ -22,26 +21,16 @@ extension Update {
             setupVO()
         }
         
-        override func viewDidAppear(_ animated: Bool) {
-            super.viewDidAppear(animated)
-            //doSearchOrLoadCache()
-        }
-        
         // MARK: - Setup Something
 
         private func setupSelf() {
             view.backgroundColor = vo.mainView.backgroundColor
-            navigationItem.title = "更新列表"
-            navigationItem.rightBarButtonItem = vo.searchItem
-
-            vo.searchItem.primaryAction = .init(title: "線上搜尋") { [weak self] _ in
-                guard let self else { return }
-                router.toRemoteSearch()
-            }
+            navigationItem.title = "線上搜尋"
             
             let searchVC = UISearchController()
             searchVC.searchResultsUpdater = self
-            searchVC.searchBar.placeholder = "本地搜尋漫畫名稱"
+            searchVC.searchBar.placeholder = "線上搜尋漫畫名稱"
+            searchVC.searchBar.searchTextField.delegate = self
             navigationItem.searchController = searchVC
             navigationItem.preferredSearchBarPlacement = .stacked
             navigationItem.hidesSearchBarWhenScrolling = false
@@ -63,8 +52,8 @@ extension Update {
                         stateNone()
                     case let .dataLoaded(response):
                         stateDataLoaded(response: response)
-                    case let .localSearched(response):
-                        stateLocalSearched(response: response)
+                    case let .nextPageLoaded(response):
+                        stateNextPageLoaded(response: response)
                     case let .favoriteChanged(response):
                         stateFavoriteChanged(response: response)
                     }
@@ -84,7 +73,6 @@ extension Update {
                 vo.mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             ])
 
-            vo.list.refreshControl?.addAction(makeReloadAction(), for: .valueChanged)
             vo.list.setCollectionViewLayout(makeListLayout(), animated: false)
             vo.list.delegate = self
         }
@@ -103,22 +91,24 @@ extension Update {
             
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
-                updateAfterDataLoaded()
+                if dataSource.snapshot().itemIdentifiers.isEmpty {
+                    showEmptyContent(isEmpty: true)
+                }
+                else {
+                    contentUnavailableConfiguration = nil
+                }
             }
         }
 
-        private func stateLocalSearched(response: LocalSearchedResponse) {
+        private func stateNextPageLoaded(response: NextPageLoadedResponse) {
+            hideLoading()
+            
             let comics = response.comics
-            var snapshot = Snapshot()
-            snapshot.appendSections([0])
+            var snapshot = dataSource.snapshot()
             snapshot.appendItems(comics, toSection: 0)
-
-            dataSource.apply(snapshot) { [weak self] in
-                guard let self else { return }
-                showEmptyContent(isEmpty: comics.isEmpty, text: "找不到漫畫")
-            }
+            dataSource.apply(snapshot)
         }
-
+        
         private func stateFavoriteChanged(response: FavoriteChangedResponse) {
             var snapshot = dataSource.snapshot()
             
@@ -129,24 +119,6 @@ extension Update {
             snapshot.insertItems([response.comic], beforeItem: old)
             snapshot.deleteItems([old])
             dataSource.apply(snapshot)
-        }
-        
-        // MARK: - Update Something
-        
-        private func updateAfterDataLoaded() {
-            if firstInit {
-                firstInit = false
-                showLoading(onWindow: true)
-                vm.doAction(.loadRemote)
-            }
-            else {
-                if dataSource.snapshot().itemIdentifiers.isEmpty {
-                    showErrorContent(action: makeReloadAction())
-                }
-                else {
-                    contentUnavailableConfiguration = nil
-                }
-            }
         }
         
         // MARK: - Make Something
@@ -211,28 +183,20 @@ extension Update {
             }
         }
 
-        private func makeReloadAction() -> UIAction {
-            .init { [weak self] _ in
-                guard let self else { return }
-                view.endEditing(true)
-                navigationItem.searchController?.searchBar.text = nil
-                navigationItem.searchController?.isActive = false
-                vo.list.panGestureRecognizer.isEnabled = false // 停止下拉更新
-                vo.list.refreshControl?.endRefreshing()
-                showLoading(onWindow: true)
-                vm.doAction(.loadRemote)
-                vo.list.panGestureRecognizer.isEnabled = true
-            }
-        }
-        
         // MARK: - Do Something
 
-        private func doSearchOrLoadCache() {
-            if let keywords = getSearchKeywords() {
-                vm.doAction(.localSearch(request: .init(keywords: keywords)))
+        private func doSearch(nextPage: Bool) {
+            guard let keywords = getSearchKeywords() else {
+                return
+            }
+            
+            showLoading()
+            
+            if nextPage {
+                vm.doAction(.loadNextPage(request: .init(keywords: keywords.gb)))
             }
             else {
-                vm.doAction(.loadData)
+                vm.doAction(.loadData(request: .init(keywords: keywords.gb)))
             }
         }
 
@@ -250,7 +214,7 @@ extension Update {
 
 // MARK: - UICollectionViewDelegate
 
-extension Update.ViewController: UICollectionViewDelegate {
+extension Search.ViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -260,23 +224,33 @@ extension Update.ViewController: UICollectionViewDelegate {
 
         router.toDetail(comicId: comic.id)
     }
+    
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        let count = dataSource.snapshot().numberOfItems
+        
+        if indexPath.item == count - 1, vm.hasNextPage {
+            doSearch(nextPage: true)
+        }
+    }
 }
 
 // MARK: - UISearchResultsUpdating
 
-extension Update.ViewController: UISearchResultsUpdating {
+extension Search.ViewController: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
-        doSearchOrLoadCache()
+        if !(searchController.isActive) {
+            let snapshot = Search.Snapshot()
+            dataSource.apply(snapshot)
+            contentUnavailableConfiguration = nil
+        }
     }
 }
 
-// MARK: - ScrollToTopable
+// MARK: - UITextFieldDelegate
 
-extension Update.ViewController: CustomTab.ScrollToTopable {
-    func scrollToTop() {
-        if dataSource.snapshot().itemIdentifiers.isEmpty { return }
-        
-        let zero = IndexPath(item: 0, section: 0)
-        vo.list.scrollToItem(at: zero, at: .top, animated: true)
+extension Search.ViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        doSearch(nextPage: false)
+        return true
     }
 }
