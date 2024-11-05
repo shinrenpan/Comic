@@ -1,13 +1,13 @@
 //
-//  UpdateListModels.swift
+//  SearchModel.swift
 //
-//  Created by Shinren Pan on 2024/5/21.
+//  Created by Joe Pan on 2024/11/5.
 //
 
 import UIKit
-import WebParser
 
-extension Update {
+extension Search {
+
     // MARK: - Type Alias
     
     typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplayComic>
@@ -17,13 +17,16 @@ extension Update {
     // MARK: - Action / Request
     
     enum Action {
-        case loadData
-        case loadRemote
-        case localSearch(request: LocalSearchRequest)
+        case loadData(request: LoadDataRequest)
+        case loadNextPage(request: LoadNextPageRequest)
         case changeFavorite(request: ChangeFavoriteRequest)
     }
     
-    struct LocalSearchRequest {
+    struct LoadDataRequest {
+        let keywords: String
+    }
+    
+    struct LoadNextPageRequest {
         let keywords: String
     }
     
@@ -36,7 +39,7 @@ extension Update {
     enum State {
         case none
         case dataLoaded(response: DataLoadedResponse)
-        case localSearched(response: LocalSearchedResponse)
+        case nextPageLoaded(response: NextPageLoadedResponse)
         case favoriteChanged(response: FavoriteChangedResponse)
     }
     
@@ -44,7 +47,7 @@ extension Update {
         let comics: [DisplayComic]
     }
     
-    struct LocalSearchedResponse {
+    struct NextPageLoadedResponse {
         let comics: [DisplayComic]
     }
     

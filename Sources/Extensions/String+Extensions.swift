@@ -28,6 +28,7 @@ extension String {
         case update
         case detail
         case images
+        case search
         
         var value: String {
             switch self {
@@ -37,6 +38,8 @@ extension String {
                 getJavaScript(fileName: "Detail")
             case .images:
                 getJavaScript(fileName: "Images")
+            case .search:
+                getJavaScript(fileName: "Search")
             }
         }
     }

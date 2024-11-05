@@ -37,7 +37,7 @@ extension ParserConfiguration {
     }
 
     static func update() -> Self {
-        let uri = "https://www.manhuagui.com/update/"
+        let uri = "https://tw.manhuagui.com/update/"
         let urlComponents = URLComponents(string: uri)!
 
         return .init(
@@ -47,6 +47,20 @@ extension ParserConfiguration {
             retryCount: 30,
             retryDuration: 1,
             javascript: .JavaScript.update.value
+        )
+    }
+    
+    static func search(keywords: String, page: Int) -> Self {
+        let uri = "https://tw.manhuagui.com/s/\(keywords)_p\(page).html"
+        let urlComponents = URLComponents(string: uri)!
+
+        return .init(
+            request: .init(url: urlComponents.url!),
+            windowSize: .init(width: 1920, height: 1080),
+            customUserAgent: .UserAgent.safari.value,
+            retryCount: 30,
+            retryDuration: 1,
+            javascript: .JavaScript.search.value
         )
     }
 }

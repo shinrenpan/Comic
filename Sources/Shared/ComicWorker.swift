@@ -23,9 +23,11 @@ actor ComicWorker: ModelActor {
 
     // MARK: - Create
     
-    func insertOrUpdateComics(_ anyCodables: [AnyCodable]) {
+    @discardableResult
+    func insertOrUpdateComics(_ anyCodables: [AnyCodable]) -> [Database.Comic] {
         let descriptor = FetchDescriptor<Database.Comic>()
         let all = (try? modelContext.fetch(descriptor)) ?? []
+        var result: [Database.Comic] = []
         
         for anyCodable in anyCodables {
             guard let id = anyCodable["id"].string, !id.isEmpty else {
@@ -43,6 +45,7 @@ actor ComicWorker: ModelActor {
                 comic.lastUpdate = lastUpdate
                 comic.cover = cover
                 comic.updateHasNew()
+                result.append(comic)
             }
             else {
                 let comic = Database.Comic(
@@ -55,10 +58,12 @@ actor ComicWorker: ModelActor {
                     detail: .init(desc: "", author: ""),
                     hasNew: true
                 )
-
+                result.append(comic)
                 modelContext.insert(comic)
             }
         }
+        
+        return result
     }
     
     // MARK: - Read

@@ -1,12 +1,12 @@
 //
-//  UpdateListVO.swift
+//  SearchViewOutlet.swift
 //
-//  Created by Shinren Pan on 2024/5/21.
+//  Created by Joe Pan on 2024/11/5.
 //
 
 import UIKit
 
-extension Update {
+extension Search {
     @MainActor final class ViewOutlet {
         let mainView = UIView(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
@@ -14,10 +14,7 @@ extension Update {
         
         let list = UICollectionView(frame: .zero, collectionViewLayout: .init())
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
-            .setup(\.refreshControl, value: .init(frame: .zero))
             .setup(\.keyboardDismissMode, value: .onDrag)
-        
-        let searchItem = UIBarButtonItem()
         
         init() {
             addViews()
