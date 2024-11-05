@@ -24,7 +24,7 @@ extension Update {
         
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
-            //doSearchOrLoadCache()
+            doSearchOrLoadCache()
         }
         
         // MARK: - Setup Something
