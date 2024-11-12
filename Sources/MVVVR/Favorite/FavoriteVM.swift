@@ -1,5 +1,5 @@
 //
-//  FavoriteListVM.swift
+//  FavoriteVM.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
@@ -8,7 +8,9 @@ import Observation
 import UIKit
 
 extension Favorite {
-    @MainActor @Observable final class ViewModel {
+    @MainActor
+    @Observable
+    final class VM {
         private(set) var state = State.none
         
         // MARK: - Public

@@ -8,9 +8,9 @@ import Observation
 import UIKit
 
 extension Detail {
-    final class ViewController: UIViewController {
-        private let vo = ViewOutlet()
-        private let vm: ViewModel
+    final class VC: UIViewController {
+        private let vo = VO()
+        private let vm: VM
         private let router = Router()
         private var firstInit = true
         private lazy var dataSource = makeDataSource()
@@ -183,7 +183,7 @@ extension Detail {
 
 // MARK: - UICollectionViewDelegate
 
-extension Detail.ViewController: UICollectionViewDelegate {
+extension Detail.VC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let episode = dataSource.itemIdentifier(for: indexPath) else {
             return

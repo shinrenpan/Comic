@@ -1,5 +1,5 @@
 //
-//  FavoriteListVO.swift
+//  FavoriteVO.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
@@ -7,7 +7,8 @@
 import UIKit
 
 extension Favorite {
-    @MainActor final class ViewOutlet {
+    @MainActor
+    final class VO {
         let mainView = UIView(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         

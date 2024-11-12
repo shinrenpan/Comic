@@ -7,7 +7,8 @@
 import UIKit
 
 extension Reader {
-    @MainActor final class ViewOutlet {
+    @MainActor
+    final class VO {
         let mainView = UIView(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
             .setup(\.backgroundColor, value: .white)
