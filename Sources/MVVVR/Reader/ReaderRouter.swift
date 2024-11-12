@@ -8,12 +8,12 @@ import UIKit
 
 extension Reader {
     @MainActor final class Router {
-        weak var vc: ViewController?
+        weak var vc: VC?
         
         // MARK: - Public
         
         func showEpisodePicker(comicId: String, epidoseId: String) {
-            let list = EpisodePicker.ViewController(comicId: comicId, episodeId: epidoseId)
+            let list = EpisodePicker.VC(comicId: comicId, episodeId: epidoseId)
             list.delegate = vc
 
             let to = UINavigationController(rootViewController: list)

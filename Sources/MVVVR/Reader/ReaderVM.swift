@@ -10,7 +10,9 @@ import UIKit
 import WebParser
 
 extension Reader {
-    @MainActor @Observable final class ViewModel {
+    @MainActor
+    @Observable
+    final class VM {
         let comicId: String
         private(set) var episodeId: String
         private(set) var state = State.none

@@ -1,5 +1,5 @@
 //
-//  EpisodeListVM.swift
+//  EpisodePickerVM.swift
 //
 //  Created by Shinren Pan on 2024/6/4.
 //
@@ -8,7 +8,9 @@ import Observation
 import UIKit
 
 extension EpisodePicker {
-    @MainActor @Observable final class ViewModel {
+    @MainActor
+    @Observable
+    final class VM {
         private(set) var state = State.none
         private let comicId: String
         private let epidoseId: String

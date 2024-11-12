@@ -9,7 +9,9 @@ import Observation
 import UIKit
 
 extension Setting {
-    @MainActor @Observable final class ViewModel {
+    @MainActor
+    @Observable
+    final class VM {
         private(set) var state = State.none
         
         // MARK: - Public

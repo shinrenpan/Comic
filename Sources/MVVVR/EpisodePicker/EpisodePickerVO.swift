@@ -1,13 +1,14 @@
 //
-//  SettingVO.swift
+//  EpisodePickerVO.swift
 //
-//  Created by Shinren Pan on 2024/5/25.
+//  Created by Shinren Pan on 2024/6/4.
 //
 
 import UIKit
 
-extension Setting {
-    @MainActor final class ViewOutlet {
+extension EpisodePicker {
+    @MainActor
+    final class VO {
         let mainView = UIView(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
             .setup(\.backgroundColor, value: .white)
@@ -17,6 +18,16 @@ extension Setting {
         
         init() {
             addViews()
+        }
+        
+        // MARK: - Public
+        
+        func scrollListToWatched(indexPath: IndexPath?) {
+            guard let indexPath else {
+                return
+            }
+            
+            list.scrollToItem(at: indexPath, at: .centeredVertically, animated: true)
         }
         
         // MARK: - Add Something

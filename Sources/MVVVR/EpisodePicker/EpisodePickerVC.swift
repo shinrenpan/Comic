@@ -1,5 +1,5 @@
 //
-//  EpisodeListVC.swift
+//  EpisodePickerVC.swift
 //
 //  Created by Shinren Pan on 2024/6/4.
 //
@@ -8,9 +8,9 @@ import Observation
 import UIKit
 
 extension EpisodePicker {
-    final class ViewController: UIViewController {
-        private let vo = ViewOutlet()
-        private let vm: ViewModel
+    final class VC: UIViewController {
+        private let vo = VO()
+        private let vm: VM
         private let router = Router()
         private lazy var dataSource = makeDataSource()
         weak var delegate: Delegate?
@@ -137,7 +137,7 @@ extension EpisodePicker {
 
 // MARK: - UICollectionViewDelegate
 
-extension EpisodePicker.ViewController: UICollectionViewDelegate {
+extension EpisodePicker.VC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         guard let episode = dataSource.itemIdentifier(for: indexPath) else {
             return

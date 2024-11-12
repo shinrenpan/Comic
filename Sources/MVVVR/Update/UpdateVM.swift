@@ -1,5 +1,5 @@
 //
-//  UpdateListVM.swift
+//  UpdateVM.swift
 //
 //  Created by Shinren Pan on 2024/5/21.
 //
@@ -10,7 +10,9 @@ import UIKit
 import WebParser
 
 extension Update {
-    @MainActor @Observable final class ViewModel {
+    @MainActor
+    @Observable
+    final class VM {
         private(set) var state = State.none
         private let parser = Parser(parserConfiguration: .update())
         

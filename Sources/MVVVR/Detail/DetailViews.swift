@@ -1,5 +1,5 @@
 //
-//  DetailHeader.swift
+//  DetailViews.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //

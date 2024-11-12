@@ -1,5 +1,5 @@
 //
-//  SearchViewModel.swift
+//  SearchVM.swift
 //
 //  Created by Joe Pan on 2024/11/5.
 //
@@ -12,7 +12,7 @@ import AnyCodable
 extension Search {
     @MainActor
     @Observable
-    final class ViewModel {
+    final class VM {
         private(set) var state = State.none
         private(set) var hasNextPage: Bool = false
         private var page: Int = 1

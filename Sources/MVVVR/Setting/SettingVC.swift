@@ -8,9 +8,9 @@ import Observation
 import UIKit
 
 extension Setting {
-    final class ViewController: UIViewController {
-        private let vo = ViewOutlet()
-        private let vm = ViewModel()
+    final class VC: UIViewController {
+        private let vo = VO()
+        private let vm = VM()
         private let router = Router()
         private lazy var dataSource = makeDataSource()
         
@@ -141,7 +141,7 @@ extension Setting {
 
 // MARK: - UICollectionViewDelegate
 
-extension Setting.ViewController: UICollectionViewDelegate {
+extension Setting.VC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: false)
 

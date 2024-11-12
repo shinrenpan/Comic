@@ -1,16 +1,17 @@
 //
-//  SearchViewController.swift
+//  HistoryVC.swift
 //
-//  Created by Joe Pan on 2024/11/5.
+//  Created by Shinren Pan on 2024/5/23.
 //
 
+import Observation
 import SwiftUI
 import UIKit
 
-extension Search {
-    final class ViewController: UIViewController {
-        private let vo = ViewOutlet()
-        private let vm = ViewModel()
+extension History {
+    final class VC: UIViewController {
+        private let vo = VO()
+        private let vm = VM()
         private let router = Router()
         private lazy var dataSource = makeDataSource()
         
@@ -21,20 +22,16 @@ extension Search {
             setupVO()
         }
         
+        override func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            vm.doAction(.loadData)
+        }
+        
         // MARK: - Setup Something
 
         private func setupSelf() {
             view.backgroundColor = vo.mainView.backgroundColor
-            navigationItem.title = "線上搜尋"
-            
-            let searchVC = UISearchController()
-            searchVC.searchResultsUpdater = self
-            searchVC.searchBar.placeholder = "線上搜尋漫畫名稱"
-            searchVC.searchBar.searchTextField.delegate = self
-            navigationItem.searchController = searchVC
-            navigationItem.preferredSearchBarPlacement = .stacked
-            navigationItem.hidesSearchBarWhenScrolling = false
-
+            navigationItem.title = "觀看紀錄"
             router.vc = self
         }
 
@@ -52,10 +49,6 @@ extension Search {
                         stateNone()
                     case let .dataLoaded(response):
                         stateDataLoaded(response: response)
-                    case let .nextPageLoaded(response):
-                        stateNextPageLoaded(response: response)
-                    case let .favoriteChanged(response):
-                        stateFavoriteChanged(response: response)
                     }
                     
                     setupBinding()
@@ -82,8 +75,6 @@ extension Search {
         private func stateNone() {}
 
         private func stateDataLoaded(response: DataLoadedResponse) {
-            hideLoading()
-            
             let comics = response.comics
             var snapshot = Snapshot()
             snapshot.appendSections([0])
@@ -91,34 +82,8 @@ extension Search {
             
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
-                if dataSource.snapshot().itemIdentifiers.isEmpty {
-                    showEmptyContent(isEmpty: true)
-                }
-                else {
-                    contentUnavailableConfiguration = nil
-                }
+                showEmptyContent(isEmpty: comics.isEmpty)
             }
-        }
-
-        private func stateNextPageLoaded(response: NextPageLoadedResponse) {
-            hideLoading()
-            
-            let comics = response.comics
-            var snapshot = dataSource.snapshot()
-            snapshot.appendItems(comics, toSection: 0)
-            dataSource.apply(snapshot)
-        }
-        
-        private func stateFavoriteChanged(response: FavoriteChangedResponse) {
-            var snapshot = dataSource.snapshot()
-            
-            guard let old = snapshot.itemIdentifiers.first(where: { response.comic.id == $0.id }) else {
-                return
-            }
-            
-            snapshot.insertItems([response.comic], beforeItem: old)
-            snapshot.deleteItems([old])
-            dataSource.apply(snapshot)
         }
         
         // MARK: - Make Something
@@ -147,23 +112,36 @@ extension Search {
 
             switch comic.favorited {
             case true:
-                return .init(actions: [makeRemoveFavoriteAction(comic: comic)])
+                return .init(actions: [
+                    makeRemoveHistoryAction(comic: comic),
+                    makeRemoveFavoriteAction(comic: comic)
+                ])
             case false:
-                return .init(actions: [makeAddFavoriteAction(comic: comic)])
+                return .init(actions: [
+                    makeRemoveHistoryAction(comic: comic),
+                    makeAddFavoriteAction(comic: comic)
+                ])
             }
+        }
+        
+        private func makeRemoveHistoryAction(comic: DisplayComic) -> UIContextualAction {
+            .init(style: .normal, title: "移除紀錄") { [weak self] _, _, _ in
+                guard let self else { return }
+                vm.doAction(.removeHistory(request: .init(comic: comic)))
+            }.setup(\.backgroundColor, value: .red)
         }
         
         private func makeAddFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
                 guard let self else { return }
-                vm.doAction(.changeFavorite(request: .init(comic: comic)))
+                vm.doAction(.addFavorite(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .blue)
         }
         
         private func makeRemoveFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
                 guard let self else { return }
-                vm.doAction(.changeFavorite(request: .init(comic: comic)))
+                vm.doAction(.removeFavorite(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .orange)
         }
         
@@ -178,43 +156,16 @@ extension Search {
         private func makeDataSource() -> DataSource {
             let cell = makeCell()
 
-            return .init(collectionView: vo.list) { collectionView, indexPath, comic in
-                collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: comic)
+            return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
+                collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: itemIdentifier)
             }
-        }
-
-        // MARK: - Do Something
-
-        private func doSearch(nextPage: Bool) {
-            guard let keywords = getSearchKeywords() else {
-                return
-            }
-            
-            showLoading()
-            
-            if nextPage {
-                vm.doAction(.loadNextPage(request: .init(keywords: keywords.gb)))
-            }
-            else {
-                vm.doAction(.loadData(request: .init(keywords: keywords.gb)))
-            }
-        }
-
-        // MARK: - Get Something
-        
-        private func getSearchKeywords() -> String? {
-            guard let result = navigationItem.searchController?.searchBar.text?.gb else {
-                return nil
-            }
-            
-            return result.isEmpty ? nil : result
         }
     }
 }
 
 // MARK: - UICollectionViewDelegate
 
-extension Search.ViewController: UICollectionViewDelegate {
+extension History.VC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -224,33 +175,15 @@ extension Search.ViewController: UICollectionViewDelegate {
 
         router.toDetail(comicId: comic.id)
     }
-    
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        let count = dataSource.snapshot().numberOfItems
-        
-        if indexPath.item == count - 1, vm.hasNextPage {
-            doSearch(nextPage: true)
-        }
-    }
 }
 
-// MARK: - UISearchResultsUpdating
+// MARK: - ScrollToTopable
 
-extension Search.ViewController: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        if !(searchController.isActive) {
-            let snapshot = Search.Snapshot()
-            dataSource.apply(snapshot)
-            contentUnavailableConfiguration = nil
-        }
-    }
-}
+extension History.VC: CustomTab.ScrollToTopable {
+    func scrollToTop() {
+        if dataSource.snapshot().itemIdentifiers.isEmpty { return }
 
-// MARK: - UITextFieldDelegate
-
-extension Search.ViewController: UITextFieldDelegate {
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        doSearch(nextPage: false)
-        return true
+        let zero = IndexPath(item: 0, section: 0)
+        vo.list.scrollToItem(at: zero, at: .top, animated: true)
     }
 }

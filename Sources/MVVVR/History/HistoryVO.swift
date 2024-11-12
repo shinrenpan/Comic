@@ -1,20 +1,19 @@
 //
-//  SearchViewOutlet.swift
+//  HistoryVO.swift
 //
-//  Created by Joe Pan on 2024/11/5.
+//  Created by Shinren Pan on 2024/5/23.
 //
 
 import UIKit
 
-extension Search {
-    @MainActor final class ViewOutlet {
+extension History {
+    @MainActor
+    final class VO {
         let mainView = UIView(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
-            .setup(\.backgroundColor, value: .white)
         
         let list = UICollectionView(frame: .zero, collectionViewLayout: .init())
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
-            .setup(\.keyboardDismissMode, value: .onDrag)
         
         init() {
             addViews()

@@ -10,7 +10,8 @@ import SwiftData
 enum Database {}
 
 extension Database {
-    @Model final class Comic: @unchecked Sendable {
+    @Model
+    final class Comic: @unchecked Sendable {
         /// Id
         @Attribute(.unique) private(set) var id: String
 
@@ -76,7 +77,8 @@ extension Database {
 }
 
 extension Database {
-    @Model final class Detail: @unchecked Sendable {
+    @Model
+    final class Detail: @unchecked Sendable {
         var comic: Comic?
         /// 描述
         var desc: String
@@ -92,7 +94,8 @@ extension Database {
 }
 
 extension Database {
-    @Model final class Episode: @unchecked Sendable {
+    @Model
+    final class Episode: @unchecked Sendable {
         var comic: Comic?
         /// Id
         private(set) var id: String

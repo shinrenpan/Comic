@@ -1,5 +1,5 @@
 //
-//  EpisodeListModel.swift
+//  EpisodePickerModel.swift
 //
 //  Created by Shinren Pan on 2024/6/4.
 //
@@ -10,7 +10,7 @@ extension EpisodePicker {
     // MARK: - Delegate
     
     protocol Delegate: UIViewController {
-        func picker(picker: ViewController, selected episodeId: String)
+        func picker(picker: VC, selected episodeId: String)
     }
     
     // MARK: - Type Alias

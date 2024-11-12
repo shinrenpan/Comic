@@ -1,17 +1,19 @@
 //
-//  HistoryListVO.swift
+//  SettingVO.swift
 //
-//  Created by Shinren Pan on 2024/5/23.
+//  Created by Shinren Pan on 2024/5/25.
 //
 
 import UIKit
 
-extension History {
-    @MainActor final class ViewOutlet {
+extension Setting {
+    @MainActor
+    final class VO {
         let mainView = UIView(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
+            .setup(\.backgroundColor, value: .white)
         
-        let list = UICollectionView(frame: .zero, collectionViewLayout: .init())
+        let list = UICollectionView(frame: .zero, collectionViewLayout: makeListLayout())
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
         
         init() {
@@ -29,6 +31,14 @@ extension History {
                 list.trailingAnchor.constraint(equalTo: mainView.trailingAnchor),
                 list.bottomAnchor.constraint(equalTo: mainView.bottomAnchor),
             ])
+        }
+
+        // MARK: - Make Something
+
+        private static func makeListLayout() -> UICollectionViewCompositionalLayout {
+            let config = UICollectionLayoutListConfiguration(appearance: .plain)
+
+            return UICollectionViewCompositionalLayout.list(using: config)
         }
     }
 }

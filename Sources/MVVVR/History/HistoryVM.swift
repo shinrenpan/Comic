@@ -1,5 +1,5 @@
 //
-//  HistoryListVM.swift
+//  HistoryVM.swift
 //
 //  Created by Shinren Pan on 2024/5/23.
 //
@@ -8,7 +8,9 @@ import Observation
 import UIKit
 
 extension History {
-    @MainActor @Observable final class ViewModel {
+    @MainActor
+    @Observable
+    final class VM {
         private(set) var state = State.none
         
         // MARK: - Public

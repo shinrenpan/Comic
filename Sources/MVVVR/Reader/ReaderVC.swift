@@ -8,9 +8,9 @@ import Observation
 import UIKit
 
 extension Reader {
-    final class ViewController: UIViewController {
-        private let vo = ViewOutlet()
-        private let vm: ViewModel
+    final class VC: UIViewController {
+        private let vo = VO()
+        private let vm: VM
         private let router = Router()
         private var isFavorited: Bool = false
         private var hideBar = false
@@ -300,7 +300,7 @@ extension Reader {
 
 // MARK: - UICollectionViewDataSource
 
-extension Reader.ViewController: UICollectionViewDataSource {
+extension Reader.VC: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         vm.imageDatas.count
     }
@@ -331,7 +331,7 @@ extension Reader.ViewController: UICollectionViewDataSource {
 
 // MARK: - UICollectionViewDelegate
 
-extension Reader.ViewController: UICollectionViewDelegate {
+extension Reader.VC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: false)
         hideBar.toggle()
@@ -341,7 +341,7 @@ extension Reader.ViewController: UICollectionViewDelegate {
 
 // MARK: - UICollectionViewDelegateFlowLayout
 
-extension Reader.ViewController: UICollectionViewDelegateFlowLayout {
+extension Reader.VC: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         var result = collectionView.frame.size
         
@@ -362,8 +362,8 @@ extension Reader.ViewController: UICollectionViewDelegateFlowLayout {
 
 // MARK: - EpisodeListModels.SelectedDelegate
 
-extension Reader.ViewController: EpisodePicker.Delegate {
-    func picker(picker: EpisodePicker.ViewController, selected episodeId: String) {
+extension Reader.VC: EpisodePicker.Delegate {
+    func picker(picker: EpisodePicker.VC, selected episodeId: String) {
         picker.dismiss(animated: true) {
             self.doChangeEpisode(episodeId: episodeId)
         }

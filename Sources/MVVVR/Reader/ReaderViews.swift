@@ -75,7 +75,8 @@ extension Reader {
 }
 
 private extension Reader {
-    @MainActor struct CellIndicator: @preconcurrency Indicator {
+    @MainActor
+    struct CellIndicator: @preconcurrency Indicator {
         let label = UILabel(frame: .zero)
             .setup(\.font, value: .preferredFont(forTextStyle: .extraLargeTitle))
             .setup(\.textAlignment, value: .center)

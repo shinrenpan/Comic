@@ -1,17 +1,17 @@
 //
-//  HistoryListVC.swift
+//  UpdateVC.swift
 //
-//  Created by Shinren Pan on 2024/5/23.
+//  Created by Shinren Pan on 2024/5/21.
 //
 
-import Observation
 import SwiftUI
 import UIKit
 
-extension History {
-    final class ViewController: UIViewController {
-        private let vo = ViewOutlet()
-        private let vm = ViewModel()
+extension Update {
+    final class VC: UIViewController {
+        var firstInit = true
+        private let vo = VO()
+        private let vm = VM()
         private let router = Router()
         private lazy var dataSource = makeDataSource()
         
@@ -24,14 +24,28 @@ extension History {
         
         override func viewDidAppear(_ animated: Bool) {
             super.viewDidAppear(animated)
-            vm.doAction(.loadData)
+            doSearchOrLoadCache()
         }
         
         // MARK: - Setup Something
 
         private func setupSelf() {
             view.backgroundColor = vo.mainView.backgroundColor
-            navigationItem.title = "觀看紀錄"
+            navigationItem.title = "更新列表"
+            navigationItem.rightBarButtonItem = vo.searchItem
+
+            vo.searchItem.primaryAction = .init(title: "線上搜尋") { [weak self] _ in
+                guard let self else { return }
+                router.toRemoteSearch()
+            }
+            
+            let searchVC = UISearchController()
+            searchVC.searchResultsUpdater = self
+            searchVC.searchBar.placeholder = "本地搜尋漫畫名稱"
+            navigationItem.searchController = searchVC
+            navigationItem.preferredSearchBarPlacement = .stacked
+            navigationItem.hidesSearchBarWhenScrolling = false
+
             router.vc = self
         }
 
@@ -49,6 +63,10 @@ extension History {
                         stateNone()
                     case let .dataLoaded(response):
                         stateDataLoaded(response: response)
+                    case let .localSearched(response):
+                        stateLocalSearched(response: response)
+                    case let .favoriteChanged(response):
+                        stateFavoriteChanged(response: response)
                     }
                     
                     setupBinding()
@@ -66,6 +84,7 @@ extension History {
                 vo.mainView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             ])
 
+            vo.list.refreshControl?.addAction(makeReloadAction(), for: .valueChanged)
             vo.list.setCollectionViewLayout(makeListLayout(), animated: false)
             vo.list.delegate = self
         }
@@ -75,6 +94,8 @@ extension History {
         private func stateNone() {}
 
         private func stateDataLoaded(response: DataLoadedResponse) {
+            hideLoading()
+            
             let comics = response.comics
             var snapshot = Snapshot()
             snapshot.appendSections([0])
@@ -82,7 +103,49 @@ extension History {
             
             dataSource.apply(snapshot) { [weak self] in
                 guard let self else { return }
-                showEmptyContent(isEmpty: comics.isEmpty)
+                updateAfterDataLoaded()
+            }
+        }
+
+        private func stateLocalSearched(response: LocalSearchedResponse) {
+            let comics = response.comics
+            var snapshot = Snapshot()
+            snapshot.appendSections([0])
+            snapshot.appendItems(comics, toSection: 0)
+
+            dataSource.apply(snapshot) { [weak self] in
+                guard let self else { return }
+                showEmptyContent(isEmpty: comics.isEmpty, text: "找不到漫畫")
+            }
+        }
+
+        private func stateFavoriteChanged(response: FavoriteChangedResponse) {
+            var snapshot = dataSource.snapshot()
+            
+            guard let old = snapshot.itemIdentifiers.first(where: { response.comic.id == $0.id }) else {
+                return
+            }
+            
+            snapshot.insertItems([response.comic], beforeItem: old)
+            snapshot.deleteItems([old])
+            dataSource.apply(snapshot)
+        }
+        
+        // MARK: - Update Something
+        
+        private func updateAfterDataLoaded() {
+            if firstInit {
+                firstInit = false
+                showLoading(onWindow: true)
+                vm.doAction(.loadRemote)
+            }
+            else {
+                if dataSource.snapshot().itemIdentifiers.isEmpty {
+                    showErrorContent(action: makeReloadAction())
+                }
+                else {
+                    contentUnavailableConfiguration = nil
+                }
             }
         }
         
@@ -112,36 +175,23 @@ extension History {
 
             switch comic.favorited {
             case true:
-                return .init(actions: [
-                    makeRemoveHistoryAction(comic: comic),
-                    makeRemoveFavoriteAction(comic: comic)
-                ])
+                return .init(actions: [makeRemoveFavoriteAction(comic: comic)])
             case false:
-                return .init(actions: [
-                    makeRemoveHistoryAction(comic: comic),
-                    makeAddFavoriteAction(comic: comic)
-                ])
+                return .init(actions: [makeAddFavoriteAction(comic: comic)])
             }
-        }
-        
-        private func makeRemoveHistoryAction(comic: DisplayComic) -> UIContextualAction {
-            .init(style: .normal, title: "移除紀錄") { [weak self] _, _, _ in
-                guard let self else { return }
-                vm.doAction(.removeHistory(request: .init(comic: comic)))
-            }.setup(\.backgroundColor, value: .red)
         }
         
         private func makeAddFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "加入收藏") { [weak self] _, _, _ in
                 guard let self else { return }
-                vm.doAction(.addFavorite(request: .init(comic: comic)))
+                vm.doAction(.changeFavorite(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .blue)
         }
         
         private func makeRemoveFavoriteAction(comic: DisplayComic) -> UIContextualAction {
             .init(style: .normal, title: "取消收藏") { [weak self] _, _, _ in
                 guard let self else { return }
-                vm.doAction(.removeFavorite(request: .init(comic: comic)))
+                vm.doAction(.changeFavorite(request: .init(comic: comic)))
             }.setup(\.backgroundColor, value: .orange)
         }
         
@@ -156,16 +206,51 @@ extension History {
         private func makeDataSource() -> DataSource {
             let cell = makeCell()
 
-            return .init(collectionView: vo.list) { collectionView, indexPath, itemIdentifier in
-                collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: itemIdentifier)
+            return .init(collectionView: vo.list) { collectionView, indexPath, comic in
+                collectionView.dequeueConfiguredReusableCell(using: cell, for: indexPath, item: comic)
             }
+        }
+
+        private func makeReloadAction() -> UIAction {
+            .init { [weak self] _ in
+                guard let self else { return }
+                view.endEditing(true)
+                navigationItem.searchController?.searchBar.text = nil
+                navigationItem.searchController?.isActive = false
+                vo.list.panGestureRecognizer.isEnabled = false // 停止下拉更新
+                vo.list.refreshControl?.endRefreshing()
+                showLoading(onWindow: true)
+                vm.doAction(.loadRemote)
+                vo.list.panGestureRecognizer.isEnabled = true
+            }
+        }
+        
+        // MARK: - Do Something
+
+        private func doSearchOrLoadCache() {
+            if let keywords = getSearchKeywords() {
+                vm.doAction(.localSearch(request: .init(keywords: keywords)))
+            }
+            else {
+                vm.doAction(.loadData)
+            }
+        }
+
+        // MARK: - Get Something
+        
+        private func getSearchKeywords() -> String? {
+            guard let result = navigationItem.searchController?.searchBar.text?.gb else {
+                return nil
+            }
+            
+            return result.isEmpty ? nil : result
         }
     }
 }
 
 // MARK: - UICollectionViewDelegate
 
-extension History.ViewController: UICollectionViewDelegate {
+extension Update.VC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -177,12 +262,20 @@ extension History.ViewController: UICollectionViewDelegate {
     }
 }
 
+// MARK: - UISearchResultsUpdating
+
+extension Update.VC: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        doSearchOrLoadCache()
+    }
+}
+
 // MARK: - ScrollToTopable
 
-extension History.ViewController: CustomTab.ScrollToTopable {
+extension Update.VC: CustomTab.ScrollToTopable {
     func scrollToTop() {
         if dataSource.snapshot().itemIdentifiers.isEmpty { return }
-
+        
         let zero = IndexPath(item: 0, section: 0)
         vo.list.scrollToItem(at: zero, at: .top, animated: true)
     }

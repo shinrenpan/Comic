@@ -1,5 +1,5 @@
 //
-//  FavoriteListVC.swift
+//  FavoriteVC.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
@@ -9,9 +9,9 @@ import SwiftUI
 import UIKit
 
 extension Favorite {
-    final class ViewController: UIViewController {
-        private let vo = ViewOutlet()
-        private let vm = ViewModel()
+    final class VC: UIViewController {
+        private let vo = VO()
+        private let vm = VM()
         private let router = Router()
         private lazy var dataSource = makeDataSource()
         
@@ -140,7 +140,7 @@ extension Favorite {
 
 // MARK: - UICollectionViewDelegate
 
-extension Favorite.ViewController: UICollectionViewDelegate {
+extension Favorite.VC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
 
@@ -154,7 +154,7 @@ extension Favorite.ViewController: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension Favorite.ViewController: CustomTab.ScrollToTopable {
+extension Favorite.VC: CustomTab.ScrollToTopable {
     func scrollToTop() {
         if dataSource.snapshot().itemIdentifiers.isEmpty { return }
 
