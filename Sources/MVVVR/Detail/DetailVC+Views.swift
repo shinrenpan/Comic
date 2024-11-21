@@ -1,5 +1,5 @@
 //
-//  DetailViews.swift
+//  DetailVC+Views.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
@@ -7,7 +7,7 @@
 import Kingfisher
 import UIKit
 
-extension Detail {
+extension DetailVC {
     final class Header: UIView {
         let coverView = UIImageView(frame: .zero)
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)

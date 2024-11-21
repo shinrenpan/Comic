@@ -14,7 +14,7 @@ extension FavoriteVC {
         // MARK: - Public
         
         func toDetail(comicId: String) {
-            let to = Detail.VC(comicId: comicId)
+            let to = DetailVC(comicId: comicId)
             to.hidesBottomBarWhenPushed = true
             vc?.navigationController?.show(to, sender: nil)
         }

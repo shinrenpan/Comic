@@ -1,12 +1,12 @@
 //
-//  DetailModel.swift
+//  DetailVC+Model.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-extension Detail {
+extension DetailVC {
     // MARK: - Type Alias
     
     typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplayEpisode>

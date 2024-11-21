@@ -1,5 +1,5 @@
 //
-//  DetailVM.swift
+//  DetailVC+VM.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
@@ -9,7 +9,7 @@ import Observation
 import UIKit
 import WebParser
 
-extension Detail {
+extension DetailVC {
     @MainActor
     @Observable
     final class VM {

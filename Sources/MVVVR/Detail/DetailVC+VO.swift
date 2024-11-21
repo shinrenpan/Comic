@@ -1,12 +1,12 @@
 //
-//  DetailVO.swift
+//  DetailVC+VO.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-extension Detail {
+extension DetailVC {
     @MainActor
     final class VO {
         let mainView = UIView(frame: .zero)
