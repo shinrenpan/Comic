@@ -1,12 +1,12 @@
 //
-//  HistoryListModels.swift
+//  HistoryVC+Model.swift
 //
 //  Created by Shinren Pan on 2024/5/23.
 //
 
 import UIKit
 
-extension History {
+extension HistoryVC {
     // MARK: - Type Alias
     
     typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplayComic>

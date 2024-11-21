@@ -1,5 +1,5 @@
 //
-//  HistoryVM.swift
+//  HistoryVC+VM.swift
 //
 //  Created by Shinren Pan on 2024/5/23.
 //
@@ -7,7 +7,7 @@
 import Observation
 import UIKit
 
-extension History {
+extension HistoryVC {
     @MainActor
     @Observable
     final class VM {

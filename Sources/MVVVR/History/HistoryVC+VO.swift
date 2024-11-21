@@ -1,12 +1,12 @@
 //
-//  HistoryVO.swift
+//  HistoryVC+VO.swift
 //
 //  Created by Shinren Pan on 2024/5/23.
 //
 
 import UIKit
 
-extension History {
+extension HistoryVC {
     @MainActor
     final class VO {
         let mainView = UIView(frame: .zero)

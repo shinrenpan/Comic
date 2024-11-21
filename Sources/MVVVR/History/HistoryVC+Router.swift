@@ -1,14 +1,14 @@
 //
-//  HistoryRouter.swift
+//  HistoryVC+Router.swift
 //
 //  Created by Shinren Pan on 2024/5/23.
 //
 
 import UIKit
 
-extension History {
+extension HistoryVC {
     @MainActor final class Router {
-        weak var vc: VC?
+        weak var vc: HistoryVC?
         
         // MARK: - Public
         
