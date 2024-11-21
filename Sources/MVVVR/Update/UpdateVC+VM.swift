@@ -1,5 +1,5 @@
 //
-//  UpdateVM.swift
+//  UpdateVC+VM.swift
 //
 //  Created by Shinren Pan on 2024/5/21.
 //
@@ -9,7 +9,7 @@ import Observation
 import UIKit
 import WebParser
 
-extension Update {
+extension UpdateVC {
     @MainActor
     @Observable
     final class VM {

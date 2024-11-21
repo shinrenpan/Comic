@@ -49,7 +49,7 @@ import WebKit
     private func makeRootVC() -> UIViewController {
         let result = CustomTab.ViewController()
 
-        let updateVC = Update.VC()
+        let updateVC = UpdateVC()
         updateVC.tabBarItem = .init(title: "更新列表", image: .init(systemName: "list.bullet"), tag: 0)
 
         let favoriteVC = Favorite.VC()

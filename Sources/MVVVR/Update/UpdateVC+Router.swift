@@ -1,15 +1,15 @@
 //
-//  UpdateRouter.swift
+//  UpdateVC+Router.swift
 //
 //  Created by Shinren Pan on 2024/5/21.
 //
 
 import UIKit
 
-extension Update {
+extension UpdateVC {
     @MainActor
     final class Router {
-        weak var vc: VC?
+        weak var vc: UpdateVC?
         
         // MARK: - Public
         

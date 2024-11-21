@@ -1,5 +1,5 @@
 //
-//  UpdateModel.swift
+//  UpdateVC+Model.swift
 //
 //  Created by Shinren Pan on 2024/5/21.
 //
@@ -7,7 +7,7 @@
 import UIKit
 import WebParser
 
-extension Update {
+extension UpdateVC {
     // MARK: - Type Alias
     
     typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplayComic>

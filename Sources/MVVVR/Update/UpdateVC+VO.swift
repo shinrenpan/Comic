@@ -6,7 +6,7 @@
 
 import UIKit
 
-extension Update {
+extension UpdateVC {
     @MainActor
     final class VO {
         let mainView = UIView(frame: .zero)

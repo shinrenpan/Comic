@@ -1,5 +1,5 @@
 //
-//  UpdateViews.swift
+//  UpdateVC+Views.swift
 //
 //  Created by Joe Pan on 2024/10/30.
 //
@@ -8,7 +8,7 @@ import UIKit
 import SwiftUI
 import Kingfisher
 
-extension Update {
+extension UpdateVC {
     struct Cell: View {
         private let comic: DisplayComic
         private let dateFormatter: DateFormatter = .init()
