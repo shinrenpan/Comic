@@ -1,12 +1,12 @@
 //
-//  SearchVO.swift
+//  SearchVC+VO.swift
 //
 //  Created by Joe Pan on 2024/11/5.
 //
 
 import UIKit
 
-extension Search {
+extension SearchVC {
     @MainActor
     final class VO {
         let mainView = UIView(frame: .zero)

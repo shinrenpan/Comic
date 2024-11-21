@@ -1,15 +1,15 @@
 //
-//  SearchRouter.swift
+//  SearchVC+Router.swift
 //
 //  Created by Joe Pan on 2024/11/5.
 //
 
 import UIKit
 
-extension Search {
+extension SearchVC {
     @MainActor
     final class Router {
-        weak var vc: VC?
+        weak var vc: SearchVC?
         
         // MARK: - Public
         

@@ -1,5 +1,5 @@
 //
-//  SearchViews.swift
+//  SearchVC+Views.swift
 //
 //  Created by Joe Pan on 2024/11/5.
 //
@@ -8,7 +8,7 @@ import UIKit
 import SwiftUI
 import Kingfisher
 
-extension Search {
+extension SearchVC {
     struct Cell: View {
         private let comic: DisplayComic
         private let dateFormatter: DateFormatter = .init()

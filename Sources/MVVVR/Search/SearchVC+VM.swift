@@ -1,5 +1,5 @@
 //
-//  SearchVM.swift
+//  SearchVC+VM.swift
 //
 //  Created by Joe Pan on 2024/11/5.
 //
@@ -9,7 +9,7 @@ import UIKit
 import WebParser
 import AnyCodable
 
-extension Search {
+extension SearchVC {
     @MainActor
     @Observable
     final class VM {

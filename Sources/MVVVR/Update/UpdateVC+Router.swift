@@ -20,7 +20,7 @@ extension UpdateVC {
         }
         
         func toRemoteSearch() {
-            let to = Search.VC()
+            let to = SearchVC()
             to.hidesBottomBarWhenPushed = true
             vc?.navigationController?.show(to, sender: nil)
         }
