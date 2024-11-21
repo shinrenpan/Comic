@@ -270,7 +270,7 @@ extension UpdateVC: UISearchResultsUpdating {
 
 // MARK: - ScrollToTopable
 
-extension UpdateVC: CustomTab.ScrollToTopable {
+extension UpdateVC: CustomTabBarVC.ScrollToTopable {
     func scrollToTop() {
         if dataSource.snapshot().itemIdentifiers.isEmpty { return }
         

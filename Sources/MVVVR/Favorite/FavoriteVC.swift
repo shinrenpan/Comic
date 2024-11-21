@@ -152,7 +152,7 @@ extension FavoriteVC: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension FavoriteVC: CustomTab.ScrollToTopable {
+extension FavoriteVC: CustomTabBarVC.ScrollToTopable {
     func scrollToTop() {
         if dataSource.snapshot().itemIdentifiers.isEmpty { return }
 

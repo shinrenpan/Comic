@@ -177,7 +177,7 @@ extension HistoryVC: UICollectionViewDelegate {
 
 // MARK: - ScrollToTopable
 
-extension HistoryVC: CustomTab.ScrollToTopable {
+extension HistoryVC: CustomTabBarVC.ScrollToTopable {
     func scrollToTop() {
         if dataSource.snapshot().itemIdentifiers.isEmpty { return }
 
