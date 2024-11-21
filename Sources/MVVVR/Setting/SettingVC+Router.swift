@@ -1,15 +1,15 @@
 //
-//  SettingRouter.swift
+//  SettingVC+Router.swift
 //
 //  Created by Shinren Pan on 2024/5/25.
 //
 
 import UIKit
 
-extension Setting {
+extension SettingVC {
     @MainActor
     final class Router {
-        weak var vc: VC?
+        weak var vc: SettingVC?
         
         // MARK: - Public
         

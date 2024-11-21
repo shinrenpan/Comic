@@ -58,7 +58,7 @@ import WebKit
         let historyVC = History.VC()
         historyVC.tabBarItem = .init(title: "觀看紀錄", image: .init(systemName: "clock"), tag: 2)
 
-        let settingVC = Setting.VC()
+        let settingVC = SettingVC()
         settingVC.tabBarItem = .init(title: "設置", image: .init(systemName: "gear"), tag: 3)
 
         result.viewControllers = [

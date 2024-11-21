@@ -1,5 +1,5 @@
 //
-//  SettingVM.swift
+//  SettingVC+VM.swift
 //
 //  Created by Shinren Pan on 2024/5/25.
 //
@@ -8,7 +8,7 @@ import Observation
 @preconcurrency import Kingfisher
 import UIKit
 
-extension Setting {
+extension SettingVC {
     @MainActor
     @Observable
     final class VM {

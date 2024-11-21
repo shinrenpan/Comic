@@ -1,12 +1,12 @@
 //
-//  SettingModel.swift
+//  SettingVC+Model.swift
 //
 //  Created by Shinren Pan on 2024/5/25.
 //
 
 import UIKit
 
-extension Setting {
+extension SettingVC {
     // MARK: - Type Alias
     
     typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplaySetting>

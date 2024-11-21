@@ -1,12 +1,12 @@
 //
-//  SettingVO.swift
+//  SettingVC+VO.swift
 //
 //  Created by Shinren Pan on 2024/5/25.
 //
 
 import UIKit
 
-extension Setting {
+extension SettingVC {
     @MainActor
     final class VO {
         let mainView = UIView(frame: .zero)
