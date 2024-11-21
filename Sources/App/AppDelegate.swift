@@ -47,18 +47,18 @@ import WebKit
     // MARK: - Make Something
 
     private func makeRootVC() -> UIViewController {
-        let result = CustomTab.ViewController()
+        let result = CustomTabBarVC()
 
-        let updateVC = Update.VC()
+        let updateVC = UpdateVC()
         updateVC.tabBarItem = .init(title: "更新列表", image: .init(systemName: "list.bullet"), tag: 0)
 
-        let favoriteVC = Favorite.VC()
+        let favoriteVC = FavoriteVC()
         favoriteVC.tabBarItem = .init(title: "收藏列表", image: .init(systemName: "star"), tag: 1)
 
-        let historyVC = History.VC()
+        let historyVC = HistoryVC()
         historyVC.tabBarItem = .init(title: "觀看紀錄", image: .init(systemName: "clock"), tag: 2)
 
-        let settingVC = Setting.VC()
+        let settingVC = SettingVC()
         settingVC.tabBarItem = .init(title: "設置", image: .init(systemName: "gear"), tag: 3)
 
         result.viewControllers = [
