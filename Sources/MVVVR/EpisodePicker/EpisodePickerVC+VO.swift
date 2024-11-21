@@ -1,12 +1,12 @@
 //
-//  EpisodePickerVO.swift
+//  EpisodePickerVC+VO.swift
 //
 //  Created by Shinren Pan on 2024/6/4.
 //
 
 import UIKit
 
-extension EpisodePicker {
+extension EpisodePickerVC {
     @MainActor
     final class VO {
         let mainView = UIView(frame: .zero)

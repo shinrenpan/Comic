@@ -1,5 +1,5 @@
 //
-//  EpisodePickerVM.swift
+//  EpisodePickerVC+VM.swift
 //
 //  Created by Shinren Pan on 2024/6/4.
 //
@@ -7,7 +7,7 @@
 import Observation
 import UIKit
 
-extension EpisodePicker {
+extension EpisodePickerVC {
     @MainActor
     @Observable
     final class VM {

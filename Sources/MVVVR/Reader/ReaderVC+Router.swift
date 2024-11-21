@@ -13,7 +13,7 @@ extension ReaderVC {
         // MARK: - Public
         
         func showEpisodePicker(comicId: String, epidoseId: String) {
-            let list = EpisodePicker.VC(comicId: comicId, episodeId: epidoseId)
+            let list = EpisodePickerVC(comicId: comicId, episodeId: epidoseId)
             list.delegate = vc
 
             let to = UINavigationController(rootViewController: list)

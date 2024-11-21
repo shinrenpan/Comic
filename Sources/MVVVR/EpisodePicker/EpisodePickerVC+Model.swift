@@ -1,16 +1,16 @@
 //
-//  EpisodePickerModel.swift
+//  EpisodePickerVC+Model.swift
 //
 //  Created by Shinren Pan on 2024/6/4.
 //
 
 import UIKit
 
-extension EpisodePicker {
+extension EpisodePickerVC {
     // MARK: - Delegate
     
     protocol Delegate: UIViewController {
-        func picker(picker: VC, selected episodeId: String)
+        func picker(picker: EpisodePickerVC, selected episodeId: String)
     }
     
     // MARK: - Type Alias

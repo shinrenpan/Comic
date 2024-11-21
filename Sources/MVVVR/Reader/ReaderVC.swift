@@ -360,8 +360,8 @@ extension ReaderVC: UICollectionViewDelegateFlowLayout {
 
 // MARK: - EpisodeListModels.SelectedDelegate
 
-extension ReaderVC: EpisodePicker.Delegate {
-    func picker(picker: EpisodePicker.VC, selected episodeId: String) {
+extension ReaderVC: EpisodePickerVC.Delegate {
+    func picker(picker: EpisodePickerVC, selected episodeId: String) {
         picker.dismiss(animated: true) {
             self.doChangeEpisode(episodeId: episodeId)
         }
