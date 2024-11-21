@@ -1,5 +1,5 @@
 //
-//  ReaderModel.swift
+//  SearchVC+Model.swift
 //
 //  Created by Shinren Pan on 2024/5/24.
 //
@@ -7,7 +7,7 @@
 import UIKit
 import WebParser
 
-extension Reader {
+extension ReaderVC {
     // MARK: - Action / Request
     
     enum Action {

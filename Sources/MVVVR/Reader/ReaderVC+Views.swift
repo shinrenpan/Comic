@@ -1,5 +1,5 @@
 //
-//  ReaderViews.swift
+//  ReaderVC+Views.swift
 //
 //  Created by Joe Pan on 2024/10/24.
 //
@@ -7,7 +7,7 @@
 import UIKit
 import Kingfisher
 
-extension Reader {
+extension ReaderVC {
     final class Cell: UICollectionViewCell {
         let imgView = UIImageView()
             .setup(\.translatesAutoresizingMaskIntoConstraints, value: false)
@@ -74,7 +74,7 @@ extension Reader {
     }
 }
 
-private extension Reader {
+private extension ReaderVC {
     @MainActor
     struct CellIndicator: @preconcurrency Indicator {
         let label = UILabel(frame: .zero)

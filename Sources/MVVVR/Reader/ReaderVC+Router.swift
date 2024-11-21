@@ -1,14 +1,14 @@
 //
-//  ReaderRouter.swift
+//  ReaderVC+Router.swift
 //
 //  Created by Shinren Pan on 2024/5/24.
 //
 
 import UIKit
 
-extension Reader {
+extension ReaderVC {
     @MainActor final class Router {
-        weak var vc: VC?
+        weak var vc: ReaderVC?
         
         // MARK: - Public
         

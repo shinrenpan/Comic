@@ -14,7 +14,7 @@ extension Detail {
         // MARK: - Public
         
         func toReader(comicId: String, episodeId: String) {
-            let to = Reader.VC(comicId: comicId, episodeId: episodeId)
+            let to = ReaderVC(comicId: comicId, episodeId: episodeId)
             to.hidesBottomBarWhenPushed = true
             vc?.navigationController?.show(to, sender: nil)
         }

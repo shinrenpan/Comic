@@ -1,12 +1,12 @@
 //
-//  ReaderVO.swift
+//  ReaderVC+VO.swift
 //
 //  Created by Shinren Pan on 2024/5/24.
 //
 
 import UIKit
 
-extension Reader {
+extension ReaderVC {
     @MainActor
     final class VO {
         let mainView = UIView(frame: .zero)

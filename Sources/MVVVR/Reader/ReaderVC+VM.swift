@@ -1,5 +1,5 @@
 //
-//  ReaderVM.swift
+//  ReaderVC+VM.swift
 //
 //  Created by Shinren Pan on 2024/5/24.
 //
@@ -9,7 +9,7 @@ import Observation
 import UIKit
 import WebParser
 
-extension Reader {
+extension ReaderVC {
     @MainActor
     @Observable
     final class VM {
