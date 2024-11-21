@@ -1,12 +1,12 @@
 //
-//  FavoriteModel.swift
+//  FavoriteVC+Model.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-extension Favorite {
+extension FavoriteVC {
     // MARK: - Type Alias
     
     typealias DataSource = UICollectionViewDiffableDataSource<Int, DisplayComic>

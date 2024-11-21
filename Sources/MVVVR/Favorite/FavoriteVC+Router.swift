@@ -1,15 +1,15 @@
 //
-//  FavoriteRouter.swift
+//  FavoriteVC+Router.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-extension Favorite {
+extension FavoriteVC {
     @MainActor
     final class Router {
-        weak var vc: VC?
+        weak var vc: FavoriteVC?
         
         // MARK: - Public
         

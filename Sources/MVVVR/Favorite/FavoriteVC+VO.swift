@@ -1,12 +1,12 @@
 //
-//  FavoriteVO.swift
+//  FavoriteVC+VO.swift
 //
 //  Created by Shinren Pan on 2024/5/22.
 //
 
 import UIKit
 
-extension Favorite {
+extension FavoriteVC {
     @MainActor
     final class VO {
         let mainView = UIView(frame: .zero)

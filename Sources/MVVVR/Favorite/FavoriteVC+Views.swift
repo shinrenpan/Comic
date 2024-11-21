@@ -1,5 +1,5 @@
 //
-//  FavoriteViews.swift
+//  FavoriteVC+Views.swift
 //
 //  Created by Joe Pan on 2024/10/28.
 //
@@ -8,7 +8,7 @@ import UIKit
 import SwiftUI
 import Kingfisher
 
-extension Favorite {
+extension FavoriteVC {
     struct Cell: View {
         private let comic: DisplayComic
         private let dateFormatter: DateFormatter = .init()
