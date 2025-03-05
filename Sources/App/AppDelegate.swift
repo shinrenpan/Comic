@@ -6,6 +6,11 @@
 
 import UIKit
 import WebKit
+import CustomUI
+import Update
+import Favorite
+import History
+import Setting
 
 @main class AppDelegate: UIResponder {
     var window: UIWindow?
@@ -47,18 +52,18 @@ import WebKit
     // MARK: - Make Something
 
     private func makeRootVC() -> UIViewController {
-        let result = CustomTabBarVC()
+        let result = TabBarController()
 
-        let updateVC = UpdateVC()
+        let updateVC = Update.ViewController()
         updateVC.tabBarItem = .init(title: "更新列表", image: .init(systemName: "list.bullet"), tag: 0)
 
-        let favoriteVC = FavoriteVC()
+        let favoriteVC = Favorite.ViewController()
         favoriteVC.tabBarItem = .init(title: "收藏列表", image: .init(systemName: "star"), tag: 1)
 
-        let historyVC = HistoryVC()
+        let historyVC = History.ViewController()
         historyVC.tabBarItem = .init(title: "觀看紀錄", image: .init(systemName: "clock"), tag: 2)
 
-        let settingVC = SettingVC()
+        let settingVC = Setting.ViewController()
         settingVC.tabBarItem = .init(title: "設置", image: .init(systemName: "gear"), tag: 3)
 
         result.viewControllers = [
