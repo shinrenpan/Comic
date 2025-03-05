@@ -2,18 +2,31 @@ name: Comic
 options:
   xcodeVersion: "16.0"
 packages:
-  WebParser:
-    url: https://github.com/shinrenpan/WebParser
-    from: 1.1.0
-  AnyCodable:
-    url: https://github.com/Flight-School/AnyCodable
-    from: 0.6.7
-  Kingfisher:
-    url: https://github.com/onevcat/Kingfisher
-    from: 7.12.0
+  CustomUI:
+    path: "CustomUI"
+  DataBase:
+    path: "DataBase"
+  Detail:
+    path: "Detail"
+  EpisodePicker:
+    path: "EpisodePicker"
+  Extensions:
+    path: "Extensions"
+  Favorite:
+    path: "Favorite"
+  History:
+    path: "History"
+  Reader:
+    path: "Reader"
+  Search:
+    path: "Search"
+  Setting:
+    path: "Setting"
+  Update:
+    path: "Update"
 settings:
   base:
-    IPHONEOS_DEPLOYMENT_TARGET: 17.4
+    IPHONEOS_DEPLOYMENT_TARGET: 18.0
     SWIFT_VERSION: 6.0
     DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
     ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: true
@@ -27,8 +40,8 @@ targets:
       base:
         CODE_SIGN_STYLE: Manual
         INFOPLIST_FILE: Sources/App/Info.plist
-        MARKETING_VERSION: 1.1.0
-        CURRENT_PROJECT_VERSION: 20241121
+        MARKETING_VERSION: 2.0.0
+        CURRENT_PROJECT_VERSION: 20250305
         PRODUCT_BUNDLE_IDENTIFIER: com.shinrenpan.Comic
       configs:
         Debug:
@@ -36,6 +49,14 @@ targets:
         Release:
           SWIFT_OPTIMIZATION_LEVEL: -O
     dependencies:
-      - package: WebParser
-      - package: AnyCodable
-      - package: Kingfisher
+      - package: CustomUI
+      - package: DataBase
+      - package: Detail
+      - package: EpisodePicker
+      - package: Extensions
+      - package: Favorite
+      - package: History
+      - package: Reader
+      - package: Search
+      - package: Setting
+      - package: Update
