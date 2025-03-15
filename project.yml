@@ -3,27 +3,27 @@ options:
   xcodeVersion: "16.0"
 packages:
   CustomUI:
-    path: "CustomUI"
+    path: "Packages/CustomUI"
   DataBase:
-    path: "DataBase"
+    path: "Packages/DataBase"
   Detail:
-    path: "Detail"
+    path: "Packages/Detail"
   EpisodePicker:
-    path: "EpisodePicker"
+    path: "Packages/EpisodePicker"
   Extensions:
-    path: "Extensions"
+    path: "Packages/Extensions"
   Favorite:
-    path: "Favorite"
+    path: "Packages/Favorite"
   History:
-    path: "History"
+    path: "Packages/History"
   Reader:
-    path: "Reader"
+    path: "Packages/Reader"
   Search:
-    path: "Search"
+    path: "Packages/Search"
   Setting:
-    path: "Setting"
+    path: "Packages/Setting"
   Update:
-    path: "Update"
+    path: "Packages/Update"
 settings:
   base:
     IPHONEOS_DEPLOYMENT_TARGET: 18.0
@@ -50,13 +50,7 @@ targets:
           SWIFT_OPTIMIZATION_LEVEL: -O
     dependencies:
       - package: CustomUI
-      - package: DataBase
-      - package: Detail
-      - package: EpisodePicker
-      - package: Extensions
       - package: Favorite
       - package: History
-      - package: Reader
-      - package: Search
       - package: Setting
       - package: Update
